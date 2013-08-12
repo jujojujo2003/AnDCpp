@@ -24,4 +24,5 @@ android {
 
 dependencies {
     compile 'com.android.support:support-v4:13.0.+'
+    compile files('libs/libjdcpp-1.0.jar')
 }
