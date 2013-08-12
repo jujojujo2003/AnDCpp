@@ -10,6 +10,7 @@ public class ConnectActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.connect_activity);
+        startActivity(new android.content.Intent(this, TestActivity.class));
     }
 
 

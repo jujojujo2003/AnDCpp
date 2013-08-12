@@ -23,7 +23,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".DCPPService"/>
+        <service android:name="com.phinmadvader.andcpp.DCPPService" />
+
+        <activity
+            android:name="com.phinmadvader.andcpp.TestActivity"
+            android:label="Test Activity" >
+        </activity>
     </application>
 
 </manifest>
