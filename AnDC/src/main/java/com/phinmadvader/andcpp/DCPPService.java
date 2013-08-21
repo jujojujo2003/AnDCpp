@@ -9,9 +9,12 @@ import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.phinvader.libjdcpp.DCClient;
 import com.phinvader.libjdcpp.DCCommand;
+import com.phinvader.libjdcpp.DCConstants;
+import com.phinvader.libjdcpp.DCDownloader;
 import com.phinvader.libjdcpp.DCFileList;
 import com.phinvader.libjdcpp.DCMessage;
 import com.phinvader.libjdcpp.DCPreferences;
@@ -21,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Created by phinfinity on 11/08/13.
@@ -36,6 +40,143 @@ public class DCPPService extends IntentService {
     private DCCommand board_message_handler = null;
     private DCCommand user_handler = null;
     private DCCommand search_handler = null;
+    private DCPreferences prefs;
+
+    private class DownloadObject {
+        private String target_nick, local_file, remote_file;
+        private DCClient.PassiveDownloadConnection myrc;
+        private long milis_began;
+        private String file_name;
+        private long file_size = 0;
+        public DCDownloader.DownloadQueueEntity download_status = null;
+
+        public DownloadObject(String target_nick, String local_file, String remote_file) {
+            this.target_nick = target_nick;
+            this.local_file = local_file;
+            this.remote_file = remote_file;
+            String[] file_name_parts = remote_file.split("/");
+            file_name = file_name_parts[file_name_parts.length - 1];
+            this.initialize_download_connection();
+        }
+        public void initialize_download_connection() {
+            DCUser my_user = new DCUser();
+            DCUser his_user = new DCUser();
+            my_user.nick = prefs.getNick();
+            his_user.nick = target_nick;
+            myrc = new DCClient.PassiveDownloadConnection(his_user, my_user, prefs, local_file, remote_file, client);
+        }
+        public void start_download() throws InterruptedException {
+            set_start_download_time();
+            download_status = client.startPassiveDownload(myrc, Constants.DOWNLOAD_TIMEOUT_MILLIS);
+        }
+        public void set_start_download_time() {
+            milis_began = System.currentTimeMillis();
+        }
+        public String getFileName() {
+            return file_name;
+        }
+        public void set_total_bytes(long size) {
+            file_size = size;
+        }
+        public long total_bytes() {
+            if (download_status != null && download_status.expectedDownloadSize != 0)
+                return download_status.expectedDownloadSize;
+            return file_size;
+        }
+        public long bytes_done() {
+            if (download_status != null)
+                return download_status.downloadedSize;
+            return 0;
+        }
+        public long millis_elapsed() {
+            return System.currentTimeMillis() - milis_began;
+        }
+        public double avg_speed() {
+            return ((double)bytes_done())/(millis_elapsed()/1000.0);
+        }
+    }
+
+    private Runnable generate_worker(final ArrayBlockingQueue<DownloadObject> q) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (true) {
+                        DownloadObject work = q.take();
+                        work.start_download();
+                        while (true) {
+                            if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED)
+                                break;
+                            else if (work.download_status.status != DCConstants.DownloadStatus.DOWNLOADING) {
+                                if (work.millis_elapsed() > Constants.DOWNLOAD_TIMEOUT_MILLIS)
+                                    break;
+                            }
+                            Thread.sleep(Constants.DOWNLOAD_UPDATE_INTERVAL_MILLIS);
+                        }
+                        if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
+                            // Do something here.
+                            Toast.makeText(DCPPService.this, "Download " + work.getFileName() + " completed.", Toast.LENGTH_SHORT);
+                        } else  {
+                            // Do Something here.
+                            Toast.makeText(DCPPService.this, "Download " + work.getFileName() + " Failed!.", Toast.LENGTH_SHORT);
+                        }
+                    }
+                } catch (InterruptedException e) {
+                    return;
+                }
+            }
+        };
+    }
+
+    private ArrayBlockingQueue<DownloadObject> normal_queue = new ArrayBlockingQueue<DownloadObject>(Constants.MAX_DOWNLOAD_Q);
+    private Thread normal_worker = new Thread(generate_worker(normal_queue));
+
+    public void download_file(String nick, String local_file, String remote_file, long file_size)  {
+        DownloadObject obj = new DownloadObject(nick,local_file,remote_file);
+        obj.set_total_bytes(file_size);
+        try {
+            normal_queue.put(obj);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public DCFileList get_file_list(String nick) {
+        File dc_dir = new File(Environment.getExternalStorageDirectory(), Constants.dcConfDirectory);
+        dc_dir.mkdir();
+        File tmp_file_list = new File(dc_dir,
+                "file_list_" + nick + "_" + Long.toString(System.currentTimeMillis())  + ".xml");
+        DownloadObject obj = new DownloadObject(nick, tmp_file_list.getAbsolutePath(), "files.xml");
+        try {
+            obj.start_download();
+            while (true) {
+                if (obj.download_status.status == DCConstants.DownloadStatus.COMPLETED)
+                    break;
+                else if (obj.download_status.status != DCConstants.DownloadStatus.DOWNLOADING) {
+                    if (obj.millis_elapsed() > Constants.DOWNLOAD_TIMEOUT_MILLIS) {
+                        Log.d("download_file_list", "Timeout reached : " + obj.millis_elapsed());
+                        break;
+                    }
+                }
+                Thread.sleep(Constants.DOWNLOAD_UPDATE_INTERVAL_MILLIS);
+            }
+            if (obj.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
+                DCFileList ret = DCFileList.parseXML(tmp_file_list);
+                tmp_file_list.delete();
+                return ret;
+            } else  {
+                String s = "null";
+                if (obj.download_status.status != null)
+                    s = obj.download_status.status.name();
+                Log.d("download_file_list", "Got download status as : " + s );
+                return null;
+            }
+        } catch (InterruptedException e) {
+            Log.d("DCPPService", "Got an interrupted exception");
+            return null;
+        }
+
+    }
 
     public void setBoard_message_handler(DCCommand handler) {
         board_message_handler = handler;
@@ -103,7 +244,7 @@ public class DCPPService extends IntentService {
             if (data.containsKey("nick") && data.containsKey("ip")) {
                 String nick = data.getString("nick");
                 String ip = data.getString("ip");
-                DCPreferences prefs = new DCPreferences(nick, 0, ip);
+                prefs = new DCPreferences(nick, 0, ip);
                 DCUser myuser = new DCUser();
                 myuser.nick = nick;
                 client = new DCClient();
@@ -116,7 +257,7 @@ public class DCPPService extends IntentService {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                client.bootstrap();
+                client.bootstrap(myuser);
                 client.setCustomUserChangeHandler(new MyUserHandler());
                 client.setCustomBoardMessageHandler(new MyBoardMessageHandler());
                 client.setCustomSearchHandler(new MySearchHandler());
@@ -132,6 +273,7 @@ public class DCPPService extends IntentService {
                         .setContentText("AnDC++ is currently running")
                         .setTicker("Connecting to hub " + ip)
                         .setContentIntent(pendingIntent);
+                normal_worker.start();
                 startForeground(1, mBuilder.build());
                 try {
                     synchronized (this) {
@@ -159,6 +301,7 @@ public class DCPPService extends IntentService {
                 this.notify();
             }
             // TODO Shutdown the DClient.
+            normal_worker.interrupt();
         }
     }
 }

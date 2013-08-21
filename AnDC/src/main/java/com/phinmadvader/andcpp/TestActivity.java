@@ -14,9 +14,11 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.phinmadvader.andcpp.DCPPService.LocalBinder;
 import com.phinvader.libjdcpp.DCCommand;
+import com.phinvader.libjdcpp.DCFileList;
 import com.phinvader.libjdcpp.DCMessage;
 import com.phinvader.libjdcpp.DCUser;
 
@@ -103,7 +105,7 @@ public class TestActivity extends Activity {
                 }
             }
         });
-        l.addView(get_status);
+        //l.addView(get_status);
         Button start_listener = new Button(this);
         start_listener.setText("Start Handlers");
         start_listener.setOnClickListener(new View.OnClickListener() {
@@ -141,6 +143,31 @@ public class TestActivity extends Activity {
         tv = new TextView(this);
         tv.setText("Hello World from no xml!");
         l2.addView(l);
+        //Row 2
+        l = new LinearLayout(this);
+        Button dl_file_list = new Button(this);
+        dl_file_list.setText("Download cracky");
+        dl_file_list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(TestActivity.this, "Downloading file list from cracky", Toast.LENGTH_LONG);
+                final DCFileList file_list = mService.get_file_list("cracky");
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(file_list != null) {
+                            tv.append("Total share size : " + file_list.size);
+                            //tv.append(file_list.toString());
+                        }
+                        else
+                            tv.append("Getting file list failed...");
+                    }
+                });
+            }
+        });
+        l.addView(dl_file_list);
+        l2.addView(l);
+        //Row 3
         ScrollView sv = new ScrollView(this);
         sv.addView(tv);
         l2.addView(sv);
