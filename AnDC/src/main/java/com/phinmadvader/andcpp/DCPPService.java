@@ -128,8 +128,8 @@ public class DCPPService extends IntentService {
         };
     }
 
-    private ArrayBlockingQueue<DownloadObject> normal_queue = new ArrayBlockingQueue<DownloadObject>(Constants.MAX_DOWNLOAD_Q);
-    private Thread normal_worker = new Thread(generate_worker(normal_queue));
+    private ArrayBlockingQueue<DownloadObject> normal_queue;
+    private Thread normal_worker; 
 
     public void download_file(String nick, String local_file, String remote_file, long file_size)  {
         DownloadObject obj = new DownloadObject(nick,local_file,remote_file);
@@ -273,6 +273,8 @@ public class DCPPService extends IntentService {
                         .setContentText("AnDC++ is currently running")
                         .setTicker("Connecting to hub " + ip)
                         .setContentIntent(pendingIntent);
+                normal_queue = new ArrayBlockingQueue<DownloadObject>(Constants.MAX_DOWNLOAD_Q);
+		        normal_worker = new Thread(generate_worker(normal_queue));
                 normal_worker.start();
                 startForeground(1, mBuilder.build());
                 try {
@@ -288,7 +290,6 @@ public class DCPPService extends IntentService {
             }
         } else {
             Log.e("dcpp_service", "Attempted to connect while already connected");
-            status = DCClientStatus.DISCONNECTED;
         }
     }
 
