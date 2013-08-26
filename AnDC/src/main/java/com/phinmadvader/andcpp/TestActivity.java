@@ -172,7 +172,7 @@ public class TestActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mService.download_file("shredder12", Constants.dcDirectory + "file1",
-                        "/Operating Systems/Ubuntu/lubuntu-12.04-desktop-amd64.iso", 731164672);
+                        "Operating Systems\\Ubuntu\\lubuntu-12.04-desktop-amd64.iso", 731164672);
             }
         });
         l.addView(dl_f1);
@@ -182,7 +182,7 @@ public class TestActivity extends Activity {
             @Override
             public void onClick(View v) {
                 mService.download_file("shredder12", Constants.dcDirectory + "file2",
-                        "/Operating Systems/Ubuntu/ubuntu-10.04-desktop-amd64.iso", 731453440);
+                        "Operating Systems\\Ubuntu\\ubuntu-10.04-desktop-amd64.iso", 731453440);
             }
         });
         l.addView(dl_f2);
@@ -191,11 +191,13 @@ public class TestActivity extends Activity {
         get_q_status.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                tv.append("\n");
                 for(DCPPService.DownloadObject o : mService.get_download_queue()) {
                     String entry = o.getTarget_nick() + " : " + o.getFileName() + " (" + o.bytes_done() + "/" + o.total_bytes() + ")";
                     entry = entry + " - " + o.get_status().name();
                     tv.append(entry + "\n");
                 }
+                tv.append("\n");
             }
         });
         l.addView(get_q_status);
