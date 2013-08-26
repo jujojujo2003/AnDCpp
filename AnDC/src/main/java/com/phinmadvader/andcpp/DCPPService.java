@@ -145,10 +145,12 @@ public class DCPPService extends IntentService {
                         }
                         if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
                             // Do something here.
-                            Toast.makeText(DCPPService.this, "Download " + work.getFileName() + " completed.", Toast.LENGTH_SHORT);
+                            Log.i("download_service", "Download " + work.getFileName() + " completed.");
+                            //Toast.makeText(DCPPService.this, "Download " + work.getFileName() + " completed.", Toast.LENGTH_SHORT);
                         } else  {
                             // Do Something here.
-                            Toast.makeText(DCPPService.this, "Download " + work.getFileName() + " Failed!.", Toast.LENGTH_SHORT);
+                            Log.e("download_service", "Download " + work.getFileName() + " Failed!.");
+                            //Toast.makeText(DCPPService.this, "Download " + work.getFileName() + " Failed!.", Toast.LENGTH_SHORT);
                         }
                     }
                 } catch (InterruptedException e) {
