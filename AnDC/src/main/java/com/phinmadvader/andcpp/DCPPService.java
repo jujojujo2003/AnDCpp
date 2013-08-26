@@ -23,6 +23,8 @@ import com.phinvader.libjdcpp.DCUser;
 import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -42,7 +44,7 @@ public class DCPPService extends IntentService {
     private DCCommand search_handler = null;
     private DCPreferences prefs;
 
-    private class DownloadObject {
+    public class DownloadObject {
         private String target_nick, local_file, remote_file;
         private DCClient.PassiveDownloadConnection myrc;
         private long milis_began;
@@ -72,11 +74,14 @@ public class DCPPService extends IntentService {
         public void set_start_download_time() {
             milis_began = System.currentTimeMillis();
         }
+        public void set_total_bytes(long size) {
+            file_size = size;
+        }
         public String getFileName() {
             return file_name;
         }
-        public void set_total_bytes(long size) {
-            file_size = size;
+        public String getTarget_nick() {
+            return target_nick;
         }
         public long total_bytes() {
             if (download_status != null && download_status.expectedDownloadSize != 0)
@@ -94,15 +99,40 @@ public class DCPPService extends IntentService {
         public double avg_speed() {
             return ((double)bytes_done())/(millis_elapsed()/1000.0);
         }
+
+        /**
+         * Returns the current status of this download entity.
+         * @return
+         */
+        public DCConstants.DownloadStatus get_status() {
+            if (download_status != null && download_status.status != null) {
+                return download_status.status;
+            } else {
+                return DCConstants.DownloadStatus.UNDEFINED;
+            }
+        }
+
+        /**
+         * Returns true if this download entity has completed either successfully or if it failed.
+         * Returns false if it has not yet been initiated.
+         * @return
+         */
+        public boolean is_finished() {
+            return (download_status.status == DCConstants.DownloadStatus.COMPLETED ||
+                    download_status.status == DCConstants.DownloadStatus.FAILED ||
+                    download_status.status == DCConstants.DownloadStatus.INTERUPTED ||
+                    download_status.status == DCConstants.DownloadStatus.SHUTDOWN);
+        }
     }
 
-    private Runnable generate_worker(final ArrayBlockingQueue<DownloadObject> q) {
+    private Runnable generate_worker(final ArrayBlockingQueue<DownloadObject> q, final ArrayList<DownloadObject> initiated_list) {
         return new Runnable() {
             @Override
             public void run() {
                 try {
                     while (true) {
                         DownloadObject work = q.take();
+                        initiated_list.add(work);
                         work.start_download();
                         while (true) {
                             if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED)
@@ -129,6 +159,7 @@ public class DCPPService extends IntentService {
     }
 
     private ArrayBlockingQueue<DownloadObject> normal_queue;
+    private ArrayList<DownloadObject> initiated_downloads;
     private Thread normal_worker; 
 
     public void download_file(String nick, String local_file, String remote_file, long file_size)  {
@@ -139,6 +170,40 @@ public class DCPPService extends IntentService {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Gives all downloads in Queue as well as finished/failed downloads
+     * use member functions of DownloadObject to get details.
+     *
+     * is_finished() -> Use this to find if it has completed (either successfully or failed)
+     * get_status() -> Use this first to assert its in Downloading before using others to get progress
+     * getFileName()
+     * getTargetNick()
+     * total_bytes()
+     * bytes_done()
+     * millis_ellapsed()
+     * avg_speed()
+     * @return
+     */
+    public List<DownloadObject> get_download_queue() {
+        ArrayList<DownloadObject> ret = new ArrayList<DownloadObject>();
+        for(DownloadObject o : normal_queue)
+            ret.add(o);
+        ret.addAll(initiated_downloads);
+        return ret;
+    }
+
+    /**
+     * Use this to clear all finished/failed downloads
+     */
+    public void clear_finished_downloads() {
+        ArrayList<DownloadObject> to_remove = new ArrayList<DownloadObject>();
+        for(DownloadObject o : initiated_downloads) {
+            if (o.is_finished())
+                to_remove.add(o);
+        }
+        initiated_downloads.removeAll(to_remove);
     }
 
     public DCFileList get_file_list(String nick) {
@@ -273,8 +338,9 @@ public class DCPPService extends IntentService {
                         .setContentText("AnDC++ is currently running")
                         .setTicker("Connecting to hub " + ip)
                         .setContentIntent(pendingIntent);
+                initiated_downloads = new ArrayList<DownloadObject>();
                 normal_queue = new ArrayBlockingQueue<DownloadObject>(Constants.MAX_DOWNLOAD_Q);
-		        normal_worker = new Thread(generate_worker(normal_queue));
+		        normal_worker = new Thread(generate_worker(normal_queue, initiated_downloads));
                 normal_worker.start();
                 startForeground(1, mBuilder.build());
                 try {

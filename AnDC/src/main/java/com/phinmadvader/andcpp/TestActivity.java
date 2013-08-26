@@ -166,6 +166,39 @@ public class TestActivity extends Activity {
             }
         });
         l.addView(dl_file_list);
+        Button dl_f1 = new Button(this);
+        dl_f1.setText("Download file1");
+        dl_f1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mService.download_file("shredder12", Constants.dcDirectory + "file1",
+                        "/Operating Systems/Ubuntu/lubuntu-12.04-desktop-amd64.iso", 731164672);
+            }
+        });
+        l.addView(dl_f1);
+        Button dl_f2 = new Button(this);
+        dl_f2.setText("Download file2");
+        dl_f2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mService.download_file("shredder12", Constants.dcDirectory + "file2",
+                        "/Operating Systems/Ubuntu/ubuntu-10.04-desktop-amd64.iso", 731453440);
+            }
+        });
+        l.addView(dl_f2);
+        Button get_q_status = new Button(this);
+        get_q_status.setText("Get Q Status");
+        get_q_status.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for(DCPPService.DownloadObject o : mService.get_download_queue()) {
+                    String entry = o.getTarget_nick() + " : " + o.getFileName() + " (" + o.bytes_done() + "/" + o.total_bytes() + ")";
+                    entry = entry + " - " + o.get_status().name();
+                    tv.append(entry + "\n");
+                }
+            }
+        });
+        l.addView(get_q_status);
         l2.addView(l);
         //Row 3
         ScrollView sv = new ScrollView(this);
