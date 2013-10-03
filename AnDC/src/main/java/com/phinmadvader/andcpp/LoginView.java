@@ -18,11 +18,15 @@ import android.widget.Toast;
 
 import com.phinvader.libjdcpp.DCCommand;
 import com.phinvader.libjdcpp.DCMessage;
+import com.phinvader.libjdcpp.DCUser;
 
 import org.apache.http.conn.util.InetAddressUtils;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -107,23 +111,35 @@ public class LoginView extends LinearLayout {
         if(!success) {
             Toast.makeText(connectActivity,"Unable to create/access download directory", Toast.LENGTH_LONG).show();
         }
-
-        //Reset all fragments
-        pageAdapter.resetToStackSize(1);
-
         //Connect
         connectActivity.serviceIntent = new Intent(connectActivity, DCPPService.class);
         connectActivity.serviceIntent.putExtra("nick", nick);
         connectActivity.serviceIntent.putExtra("ip", ip);
-        connectActivity.startService(connectActivity.serviceIntent);
         connectActivity.mService.setUser_handler(new DCCommand() {
             @Override
             public void onCommand(DCMessage dcMessage) {
                 pageAdapter.userHandler(dcMessage);
             }
         });
-        pageAdapter.incrementStack();
-        connectButton.setText(DisconnectString);
-        connectActivity.moveToPage(1);
+        connectActivity.startService(connectActivity.serviceIntent);
     }
+   public void refreshNickList(){
+       if(connectActivity.mService == null)
+           return;
+       if(connectActivity.mService.get_status() != DCPPService.DCClientStatus.CONNECTED)
+           return;
+       pageAdapter.resetToStackSize(1);
+       pageAdapter.incrementStack();
+       connectButton.setText(DisconnectString);
+       connectActivity.moveToPage(1);
+       List<DCUser> nickList = connectActivity.mService.get_nick_list();
+       List<String> nickListString = new ArrayList<String>();
+       for(int i=0;i<nickList.size();i++){
+          nickListString.add(nickList.get(i).nick);
+       }
+       Log.e("YEAH HERE WOTH ",""+nickListString.size());
+       connectActivity.adapter.addNick(nickListString);
+       Log.e("YEah shud be done","done");
+       connectActivity.adapter.userListView.setConnectedUserCount(connectActivity.adapter.nickList.size());
+   }
 }

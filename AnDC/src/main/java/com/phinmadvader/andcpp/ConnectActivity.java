@@ -17,14 +17,18 @@ import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class ConnectActivity extends FragmentActivity {
     // Declare Variables
     public ViewPager viewPager;
-    public PagerAdapter adapter;
+    public ViewPageAdapter adapter;
     public Intent serviceIntent;
     public DCPPService mService;
     SharedPreferences settings;
     boolean mBound = false;
+    Poller poller;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -55,6 +59,10 @@ public class ConnectActivity extends FragmentActivity {
         adapter = new ViewPageAdapter(this);
         // Binds the Adapter to the ViewPager
         viewPager.setAdapter(adapter);
+
+
+        //Start Poller
+        poller = new Poller(this);
     }
 
     // Not using options menu in this tutorial
@@ -77,6 +85,16 @@ public class ConnectActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         bindService(new Intent(this, DCPPService.class), mConnection, Context.BIND_AUTO_CREATE);
+
+        if(mService != null) {
+        if(mService.get_status() == DCPPService.DCClientStatus.CONNECTED){
+            if(adapter.loginView!=null)
+            adapter.loginView.connectButton.setText(adapter.loginView.ConnectString);
+        } else {
+            if(adapter.loginView!=null)
+            adapter.loginView.connectButton.setText(adapter.loginView.DisconnectString);
+        }
+      }
     }
 
     public void moveToPage(int page) {

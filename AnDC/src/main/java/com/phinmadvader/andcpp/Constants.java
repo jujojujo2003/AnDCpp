@@ -14,4 +14,5 @@ public class Constants {
     public static int MAX_DOWNLOAD_Q = 128;
     public static int DOWNLOAD_TIMEOUT_MILLIS = 10000;
     public static int DOWNLOAD_UPDATE_INTERVAL_MILLIS = 100; // Updates all download activities every 200ms
+    public static int POLLING_CLASS_TIME_IN_MILLIS = 1000; // Interval frequency for poll updates
 }

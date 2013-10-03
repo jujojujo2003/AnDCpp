@@ -11,10 +11,14 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 
+import com.phinvader.libjdcpp.DCFileList;
 import com.phinvader.libjdcpp.DCMessage;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Created by invader on 8/11/13.
@@ -25,11 +29,16 @@ public class ViewPageAdapter extends PagerAdapter{
     int uiStackSize = 1;
     ConnectActivity connectActivity;
     ArrayList<String> nickList;
+    Set<String> nickSet;
     ArrayAdapter<String> userListAdapter;
+    List<FileListView> fileListViewList;
+    List<String> atLocation;
+    DCFileList fileList;
+    String chosenNick;
 
     //Views
-    LoginView loginView;
-    UserListView userListView;
+    public LoginView loginView;
+    public UserListView userListView;
 
     public ViewPageAdapter(ConnectActivity connectActivity) {
         this.connectActivity = connectActivity;
@@ -37,6 +46,49 @@ public class ViewPageAdapter extends PagerAdapter{
         userListAdapter = new ArrayAdapter<String>(connectActivity, android.R.layout.simple_list_item_1, nickList );
         loginView = new LoginView(connectActivity, this);
         userListView = new UserListView(connectActivity, this);
+        nickSet = new TreeSet<String>();
+        fileListViewList = new ArrayList<FileListView>();
+        atLocation = new ArrayList<String>();
+    }
+
+    public void addNick(final List<String> nicks) {
+        synchronized (nickSet) {
+        for (int i = 0;i<nicks.size();i++)
+          if(nickSet.contains(nicks.get(i)))
+          {
+              nicks.remove(i);
+          }
+        ((Activity)connectActivity).runOnUiThread(new Runnable()
+        {
+            public void run()
+            {
+
+        nickSet.addAll(nicks);
+        nickList.addAll(nicks);
+        Collections.sort(nickList);
+        userListAdapter.notifyDataSetChanged();
+            }});
+        }
+    }
+
+    public void delNick(final String nick) {
+        synchronized (nickSet) {
+        if(!nickSet.contains(nick))
+            return;
+        ((Activity)connectActivity).runOnUiThread(new Runnable()
+        {
+            public void run()
+            {
+                for(int i = 0 ; i < nickList.size() ; i++) {
+                    if(nickList.get(i).equals(nick)) {
+                        nickList.remove(i);
+                        break;
+                    }
+                }
+                nickSet.remove(nick);
+                userListAdapter.notifyDataSetChanged();
+            }});
+        }
     }
 
     @Override
@@ -75,7 +127,7 @@ public class ViewPageAdapter extends PagerAdapter{
         } else if (position == 1) {
             itemView = userListView;
         } else {
-            itemView = inflater.inflate(R.layout.login_layout, container,false);
+            itemView = fileListViewList.get(position-2);
         }
         // Add viewpager_item.xml to ViewPager
         ((ViewPager) container).addView(itemView);
@@ -91,12 +143,14 @@ public class ViewPageAdapter extends PagerAdapter{
 
     public void resetToStackSize(int size) {
         setStackSize(size);
+
         if(size == 1) {
         ((Activity)connectActivity).runOnUiThread(new Runnable()
         {
             public void run()
             {
                 nickList.clear();
+                fileListViewList.clear();
                 userListAdapter.notifyDataSetChanged();
                 if(userListView != null) {
                     userListView.setConnectedUserCount(nickList.size());
@@ -115,9 +169,9 @@ public class ViewPageAdapter extends PagerAdapter{
             {
                 public void run()
                 {
-                    nickList.add(message.myinfo.nick);
-                    Collections.sort(nickList);
-                    userListAdapter.notifyDataSetChanged();
+                    List<String> nlist = new ArrayList<String>();
+                    nlist.add(message.myinfo.nick);
+                    addNick(nlist);
                     if(userListView != null) {
                         userListView.setConnectedUserCount(nickList.size());
                     }
@@ -126,26 +180,17 @@ public class ViewPageAdapter extends PagerAdapter{
             );
 
         } else if (message.command.equals("Quit")) {
-
-
             ((Activity)connectActivity).runOnUiThread(new Runnable()
             {
                 public void run()
                 {
-                    for(int i = 0 ; i < nickList.size() ; i++) {
-                        if(nickList.get(i).equals(message.quit_s)) {
-                            nickList.remove(i);
-                            break;
-                        }
-                    }
-                    userListAdapter.notifyDataSetChanged();
+                    delNick(message.quit_s);
                     if(userListView != null) {
                         userListView.setConnectedUserCount(nickList.size());
                     }
                 }
             }
             );
-
         }
     }
 }
