@@ -311,7 +311,7 @@ public class DCPPService extends IntentService {
             if (data.containsKey("nick") && data.containsKey("ip")) {
                 String nick = data.getString("nick");
                 String ip = data.getString("ip");
-                prefs = new DCPreferences(nick, 0, ip);
+                prefs = new DCPreferences(nick, 3000L*1024*1024, ip);
                 DCUser myuser = new DCUser();
                 myuser.nick = nick;
                 client = new DCClient();
