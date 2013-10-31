@@ -26,8 +26,8 @@ public class FileListView extends LinearLayout{
     ListView fileListView;
     TextView connectedUserCount;
 
-    ArrayAdapter<String> filesAdapter ;
-    List<String> curFiles;
+    ArrayAdapter<DCFileList> filesAdapter ;
+    List<DCFileList> curFiles;
     List<DCFileList> fileList;
     int depth = 0;//Depth of adapter
 
@@ -50,7 +50,7 @@ public class FileListView extends LinearLayout{
         fileList = fileLists;
         for(int i=0;i<fileLists.size();i++)
         {
-            curFiles.add(fileLists.get(i).name);
+            curFiles.add(fileLists.get(i));
         }
         filesAdapter.notifyDataSetChanged();
         while(pageAdapter.atLocation.size() != depth)
@@ -61,8 +61,8 @@ public class FileListView extends LinearLayout{
         super(connectActivity);
         this.connectActivity = connectActivity;
         this.pageAdapter = pageAdapter;
-        curFiles = new ArrayList<String>();
-        filesAdapter = new ArrayAdapter<String>(connectActivity, android.R.layout.simple_list_item_1, curFiles );
+        curFiles = new ArrayList<DCFileList>();
+        filesAdapter = new FileListAdapter(connectActivity, android.R.layout.simple_list_item_1, curFiles );
         LayoutInflater mInflater = (LayoutInflater)connectActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         mInflater.inflate(R.layout.file_list, this, true);
         fileListView = (ListView) findViewById(R.id.listView);
@@ -76,7 +76,7 @@ public class FileListView extends LinearLayout{
                         pageAdapter.atLocation.remove(pageAdapter.atLocation.size()-1);
 
 
-                         pageAdapter.atLocation.add(curFiles.get(i));
+                         pageAdapter.atLocation.add(curFiles.get(i).name);
 
                     if(pageAdapter.fileListViewList.size()>=depth+2){
                              pageAdapter.fileListViewList.get(depth+1).refreshLocation();

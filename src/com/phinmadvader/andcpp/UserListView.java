@@ -1,12 +1,15 @@
 package com.phinmadvader.andcpp;
 
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -23,6 +26,7 @@ public class UserListView extends LinearLayout{
     ViewPageAdapter pageAdapter;
     ListView userListView;
     TextView connectedUserCount;
+    EditText filterInput ;
 
 
     public UserListView( final ConnectActivity connectActivity, final ViewPageAdapter pageAdapter) {
@@ -42,8 +46,8 @@ public class UserListView extends LinearLayout{
                         pageAdapter.resetToStackSize(2);
                     }
                 });
-                final String nick = connectActivity.adapter.nickList.get(i);
-                Toast.makeText(connectActivity,"Fetching file list",Toast.LENGTH_SHORT).show();
+                final String nick = connectActivity.adapter.nickList.get(i).nick;
+                Toast.makeText(connectActivity,"Fetching file list of"+nick,Toast.LENGTH_SHORT).show();
                 pageAdapter.chosenNick = nick;
                 Thread fileDownloadThread = new Thread(new Runnable() {
                     @Override
@@ -82,6 +86,30 @@ public class UserListView extends LinearLayout{
                fileDownloadThread.start();
             }
         });
+        
+        filterInput = (EditText)findViewById(R.id.filterText);
+        filterInput.addTextChangedListener(new TextWatcher() {
+			
+			@Override
+			public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
+				Log.i("ONTEXTCHANGE",arg0.toString());
+				pageAdapter.userListAdapter.getFilter().filter(arg0);
+			}
+			
+			@Override
+			public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
+					int arg3) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void afterTextChanged(Editable arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+        
         connectedUserCount = (TextView) findViewById(R.id.textView2);
     }
 

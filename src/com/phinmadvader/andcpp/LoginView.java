@@ -1,34 +1,26 @@
 package com.phinmadvader.andcpp;
 
-import android.content.ComponentName;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.http.conn.util.InetAddressUtils;
+
 import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.phinvader.libjdcpp.DCCommand;
 import com.phinvader.libjdcpp.DCMessage;
 import com.phinvader.libjdcpp.DCUser;
-
-import org.apache.http.conn.util.InetAddressUtils;
-
-import java.io.File;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by invader on 8/11/13.
@@ -133,9 +125,9 @@ public class LoginView extends LinearLayout {
        connectButton.setText(DisconnectString);
        connectActivity.moveToPage(1);
        List<DCUser> nickList = connectActivity.mService.get_nick_list();
-       List<String> nickListString = new ArrayList<String>();
+       List<DCUserComparable> nickListString = new ArrayList<DCUserComparable>();
        for(int i=0;i<nickList.size();i++){
-          nickListString.add(nickList.get(i).nick);
+          nickListString.add(new DCUserComparable(nickList.get(i)));
        }
        Log.e("YEAH HERE WOTH ",""+nickListString.size());
        connectActivity.adapter.addNick(nickListString);
