@@ -1,5 +1,6 @@
 package com.phinmadvader.andcpp;
 
+import android.app.NotificationManager;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -57,7 +58,7 @@ public class FileListView extends LinearLayout{
             pageAdapter.atLocation.remove(pageAdapter.atLocation.size()-1);
 
     }
-    public FileListView(final ConnectActivity connectActivity, final ViewPageAdapter pageAdapter) {
+    public FileListView(final ConnectActivity connectActivity, final ViewPageAdapter pageAdapter,final Context context) {
         super(connectActivity);
         this.connectActivity = connectActivity;
         this.pageAdapter = pageAdapter;
@@ -82,7 +83,7 @@ public class FileListView extends LinearLayout{
                              pageAdapter.fileListViewList.get(depth+1).refreshLocation();
 
                     }else{
-                             pageAdapter.fileListViewList.add(new FileListView(connectActivity,pageAdapter));
+                             pageAdapter.fileListViewList.add(new FileListView(connectActivity,pageAdapter,context));
 
                     }
                          pageAdapter.resetToStackSize(3+depth+1);
@@ -96,6 +97,10 @@ public class FileListView extends LinearLayout{
                     path += "\\"+fileList.get(i).name;
                     Log.e("PATH",path);
                     connectActivity.mService.download_file(pageAdapter.chosenNick,Constants.dcDirectory+"/"+fileList.get(i).name,path,fileList.get(i).size);
+                    
+                    
+                    
+                    
                     connectActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {

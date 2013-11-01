@@ -1,13 +1,16 @@
 package com.phinmadvader.andcpp;
 
 import android.app.IntentService;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.NotificationCompat.Builder;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -43,6 +46,7 @@ public class DCPPService extends IntentService {
     private DCCommand user_handler = null;
     private DCCommand search_handler = null;
     private DCPreferences prefs;
+
 
     public class DownloadObject {
         private String target_nick, local_file, remote_file;
@@ -146,6 +150,7 @@ public class DCPPService extends IntentService {
                         if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
                             // Do something here.
                             Log.i("download_service", "Download " + work.getFileName() + " completed.");
+                            
                             //Toast.makeText(DCPPService.this, "Download " + work.getFileName() + " completed.", Toast.LENGTH_SHORT);
                         } else  {
                             // Do Something here.
@@ -162,16 +167,67 @@ public class DCPPService extends IntentService {
 
     private ArrayBlockingQueue<DownloadObject> normal_queue;
     private ArrayList<DownloadObject> initiated_downloads;
-    private Thread normal_worker; 
+    private Thread normal_worker;
+	private NotificationManager mNotifyManager;
+	private Builder mBuilder; 
 
     public void download_file(String nick, String local_file, String remote_file, long file_size)  {
-        DownloadObject obj = new DownloadObject(nick,local_file,remote_file);
+    	
+    	
+    	
+    	
+        final DownloadObject obj = new DownloadObject(nick,local_file,remote_file);
         obj.set_total_bytes(file_size);
         try {
             normal_queue.put(obj);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        
+        
+        
+        //HAHAHAHAH
+        mNotifyManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mBuilder = new NotificationCompat.Builder(this);
+        mBuilder.setContentTitle("Picture Download")
+            .setContentText("Download in progress")
+            .setSmallIcon(R.drawable.internet);
+        // Start a lengthy operation in a background thread
+        new Thread(
+            new Runnable() {
+                @Override
+                public void run() {
+                    // Do the "lengthy" operation 20 times
+                    while (!obj.is_finished()) {
+                            // Sets the progress indicator to a max value, the
+                            // current completion percentage, and "determinate"
+                            // state
+                            mBuilder.setProgress((int)obj.total_bytes(),(int) obj.bytes_done(), false);
+                            // Displays the progress bar for the first time.
+                            mNotifyManager.notify(0, mBuilder.build());
+                                // Sleeps the thread, simulating an operation
+                                // that takes time
+                                try {
+                                    // Sleep for 5 seconds
+                                    Thread.sleep(Constants.DOWNLOAD_UPDATE_INTERVAL_MILLIS);
+                                } catch (InterruptedException e) {
+                                    Log.d("BOO", "sleep failure");
+                                }
+                    }
+                    // When the loop is finished, updates the notification
+                    mBuilder.setContentText("Download complete")
+                    // Removes the progress bar
+                            .setProgress(0,0,false);
+                    mNotifyManager.notify(0, mBuilder.build());
+                }
+            }
+        // Starts the thread by calling the run() method in its Runnable
+        ).start();
+        
+        
+        
+        
     }
 
     /**
@@ -313,8 +369,6 @@ public class DCPPService extends IntentService {
                 String ip = data.getString("ip");
                 prefs = new DCPreferences(nick, 3000L*1024*1024, ip);
                 DCUser myuser = new DCUser();
-                //myuser.share_size = 3000000000L;
-                
                 myuser.nick = nick;
                 client = new DCClient();
                 try {

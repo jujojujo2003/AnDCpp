@@ -27,12 +27,14 @@ public class UserListView extends LinearLayout {
 	ListView userListView;
 	TextView connectedUserCount;
 	EditText filterInput;
+	Context context;
 
 	public UserListView(final ConnectActivity connectActivity,
 			final ViewPageAdapter pageAdapter) {
 		super(connectActivity);
 		this.connectActivity = connectActivity;
 		this.pageAdapter = pageAdapter;
+		this.context = context;
 		LayoutInflater mInflater = (LayoutInflater) connectActivity
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		mInflater.inflate(R.layout.userlist_layout, this, true);
@@ -97,7 +99,7 @@ public class UserListView extends LinearLayout {
 											pageAdapter.fileListViewList
 													.add(new FileListView(
 															connectActivity,
-															pageAdapter));
+															pageAdapter,context));
 										else {
 											pageAdapter.fileListViewList.get(0)
 													.refreshLocation();
