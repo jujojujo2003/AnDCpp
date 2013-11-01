@@ -49,8 +49,16 @@ public class UserListView extends LinearLayout {
 								pageAdapter.resetToStackSize(2);
 							}
 						});
-						final String nick = connectActivity.adapter.nickList
-								.get(i).nick;
+						final DCUserComparable user = connectActivity.adapter.nickList
+								.get(i);
+						
+						final String nick = user.nick;
+						
+						if(!user.active){
+							Toast.makeText(connectActivity,"Cannot download from Passive (Red) users.",Toast.LENGTH_SHORT).show();
+							return;
+						}
+						
 						Toast.makeText(connectActivity,
 								"Fetching file list of " + nick,
 								Toast.LENGTH_SHORT).show();
@@ -60,6 +68,7 @@ public class UserListView extends LinearLayout {
 							public void run() {
 								final DCFileList fileList = connectActivity.mService
 										.get_file_list(nick);
+
 								if (fileList == null) {
 									connectActivity
 											.runOnUiThread(new Runnable() {
@@ -67,13 +76,14 @@ public class UserListView extends LinearLayout {
 												public void run() {
 													Toast.makeText(
 															connectActivity,
-															"User not in active mode",
+															"Slot not available.",
 															Toast.LENGTH_LONG)
 															.show();
 												}
 											});
 									return;
 								}
+								Log.i("SIZE",Long.toString(fileList.size));
 								connectActivity.runOnUiThread(new Runnable() {
 									@Override
 									public void run() {
