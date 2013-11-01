@@ -313,7 +313,7 @@ public class DCPPService extends IntentService {
                 String ip = data.getString("ip");
                 prefs = new DCPreferences(nick, 3000L*1024*1024, ip);
                 DCUser myuser = new DCUser();
-                myuser.share_size = 3000000000L;
+                //myuser.share_size = 3000000000L;
                 
                 myuser.nick = nick;
                 client = new DCClient();

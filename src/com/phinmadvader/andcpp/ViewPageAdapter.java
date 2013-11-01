@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,7 @@ import android.widget.LinearLayout;
 
 import com.phinvader.libjdcpp.DCFileList;
 import com.phinvader.libjdcpp.DCMessage;
+import com.phinvader.libjdcpp.DCUser;
 
 /**
  * Created by invader on 8/11/13.
@@ -26,7 +28,7 @@ public class ViewPageAdapter extends PagerAdapter {
 	LayoutInflater inflater;
 	int uiStackSize = 1;
 	ConnectActivity connectActivity;
-	ArrayList<DCUserComparable> nickList;
+	List<DCUserComparable> nickList;
 	Set<DCUserComparable> nickSet;
 	UserListAdapter userListAdapter;
 	List<FileListView> fileListViewList;
@@ -92,6 +94,22 @@ public class ViewPageAdapter extends PagerAdapter {
 	@Override
 	public int getCount() {
 		return uiStackSize;
+	}
+	
+	public void clearNicklistConstraints(){
+	       if(connectActivity.mService == null)
+	           return;
+	       if(connectActivity.mService.get_status() != DCPPService.DCClientStatus.CONNECTED)
+	           return;
+	       //connectActivity.moveToPage(1);
+	       List<DCUser> nickList = connectActivity.mService.get_nick_list();
+	       List<DCUserComparable> nickListString = new ArrayList<DCUserComparable>();
+	       for(int i=0;i<nickList.size();i++){
+	          nickListString.add(new DCUserComparable(nickList.get(i)));
+	       }
+	       connectActivity.adapter.addNick(nickListString);
+	       connectActivity.adapter.userListView.setConnectedUserCount(connectActivity.adapter.nickList.size());
+
 	}
 
 	public void incrementStack() {

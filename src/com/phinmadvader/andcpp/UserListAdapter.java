@@ -24,11 +24,13 @@ public class UserListAdapter extends ArrayAdapter<DCUserComparable> {
 	public UserListAdapter(Context context, int textViewResourceId,
 			List<DCUserComparable> nickList) {
 		super(context, textViewResourceId, nickList);
+
 		this.context = context;
-		this.nickList = nickList;
+		
+			this.nickList = nickList;
 		this.filtered = nickList;
 		
-		
+
 	}
 
 	@Override
@@ -41,12 +43,14 @@ public class UserListAdapter extends ArrayAdapter<DCUserComparable> {
 		TextView support = (TextView) rowView.findViewById(R.id.text12);
 		ImageView image = (ImageView) rowView.findViewById(R.id.icon);
 
-		DCUserComparable user = filtered.get(position);
+		DCUserComparable user;
+
+		user = nickList.get(position);
 
 		title.setText(user.nick);
 		support.setText("Share :"
-				+ Double.toString(user.share_size / (1024 * 1024)) + "MB \t"
-				+ user.email);
+				+ Double.toString(user.share_size / (1024 * 1024 * 1024))
+				+ "GB \t" + user.email);
 		if (user.active)
 			image.setImageResource(R.drawable.green_user);
 		else
@@ -55,22 +59,23 @@ public class UserListAdapter extends ArrayAdapter<DCUserComparable> {
 
 	}
 
-    @Override
-    public Filter getFilter()
-    {
-        if(filter == null)
-            filter = new DCUserFilter();
-        return filter;
-    }
-	
+	@Override
+	public Filter getFilter() {
+		if (filter == null)
+			filter = new DCUserFilter();
+		return filter;
+	}
+
 	public class DCUserFilter extends Filter {
 
 		@SuppressLint("DefaultLocale")
 		@Override
 		protected FilterResults performFiltering(CharSequence con) {
-			String constraint = con.toString().toLowerCase();
-			Log.i("CONSTRAINT",constraint);
 			FilterResults result = new FilterResults();
+			
+
+			String constraint = con.toString().toLowerCase();
+			Log.i("CONSTRAINT", Integer.toString(nickList.size()));
 			if (constraint != null && constraint.length() > 0) {
 				ArrayList<DCUserComparable> filteredDCUsers = new ArrayList<DCUserComparable>();
 				ArrayList<DCUserComparable> allDCUsers = new ArrayList<DCUserComparable>();
@@ -103,12 +108,12 @@ public class UserListAdapter extends ArrayAdapter<DCUserComparable> {
 			filtered = (ArrayList<DCUserComparable>) results.values;
 			notifyDataSetChanged();
 			clear();
-            for(int i = 0, l = filtered.size(); i < l; i++)
-                add(filtered.get(i));
-            notifyDataSetInvalidated();
+
+			for (int i = 0, l = filtered.size(); i < l; i++)
+				add(filtered.get(i));
+			notifyDataSetInvalidated();
 
 		}
 
 	}
-
 }

@@ -65,13 +65,13 @@ public class LoginView extends LinearLayout {
         ipText.setText(ip);
     }
 
-    private void disconnect() {
+    public void disconnect() {
         connectActivity.mService.shutdown();
         pageAdapter.resetToStackSize(1);
         connectButton.setText(ConnectString);
     }
 
-    private void connect() {
+    public void connect() {
 
         String nick = nickText.getText().toString();
         String ip = ipText.getText().toString();

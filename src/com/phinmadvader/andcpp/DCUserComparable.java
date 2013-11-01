@@ -1,5 +1,7 @@
 package com.phinmadvader.andcpp;
 
+import android.util.Log;
+
 import com.phinvader.libjdcpp.DCUser;
 
 public class DCUserComparable extends DCUser implements Comparable<DCUser>{

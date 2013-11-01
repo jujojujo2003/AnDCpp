@@ -3,7 +3,6 @@ package com.phinmadvader.andcpp;
 import java.util.List;
 
 import android.content.Context;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +40,7 @@ public class FileListAdapter extends ArrayAdapter<DCFileList>{
 		public static String[] isoExtensions = {"iso"};
 		public static String[] internetExtensions = {"htm","html","js","css"};
 		public static String[] textExtensions = {"txt","dat","xml","rtf","srt","chm"};
-		public static String[] compressedExtensions = {"zip","7z","tar","gz","rar"};
+		public static String[] compressedExtensions = {"zip","7z","tar","gz","rar","jar"};
 		
 		
 		public static boolean isContained(String ext,String[] list){
