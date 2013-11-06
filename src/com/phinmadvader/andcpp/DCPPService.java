@@ -35,26 +35,25 @@ public class DCPPService extends IntentService {
 	public static enum DCClientStatus {
 		DISCONNECTED, INVALIDIP, CONNECTED
 	}
-	
-	public static String[] FileUnits = {"Bytes", "KB", "MB", "GB", "TB"};
-	
-	public static class FileSize{
+
+	public static String[] FileUnits = { "Bytes", "KB", "MB", "GB", "TB" };
+
+	public static class FileSize {
 		public double fileSize;
 		public String unit;
-		public FileSize(double size){
-			int i = 0 ; 
-			while(size > 1){
+
+		public FileSize(double size) {
+			int i = 0;
+			while (size > 1) {
 				unit = FileUnits[i];
-				fileSize= size;
-				size/=1024;
+				fileSize = size;
+				size /= 1024;
 				i++;
-				
+
 			}
 		}
-		
+
 	}
-	
-	
 
 	private DCClientStatus status = DCClientStatus.DISCONNECTED;
 	private boolean is_connected = false;
@@ -63,7 +62,7 @@ public class DCPPService extends IntentService {
 	private DCCommand user_handler = null;
 	private DCCommand search_handler = null;
 	private DCPreferences prefs;
-	private int downloadID = 1;
+	public int downloadID = 1;
 	NotificationManager mNotifyManager2;
 
 	public class DownloadObject {
@@ -73,6 +72,8 @@ public class DCPPService extends IntentService {
 		private long milis_began;
 		private String file_name;
 		private long file_size = 0;
+		public int currentID;
+
 		public DCDownloader.DownloadQueueEntity download_status = null;
 
 		public DownloadObject(String target_nick, String local_file,
@@ -83,11 +84,25 @@ public class DCPPService extends IntentService {
 			String[] file_name_parts = remote_file.split("/");
 			file_name = file_name_parts[file_name_parts.length - 1];
 
+			downloadID++;
+			this.currentID = downloadID;
+
 			mBuilder2 = new NotificationCompat.Builder(parent);
 			this.initialize_download_connection();
 		}
 
 		public void initialize_download_connection() {
+
+			if (!remote_file.equalsIgnoreCase("files.xml")) {
+
+				this.mBuilder2.setContentTitle(this.file_name)
+						.setContentText("Download Queue")
+						.setSmallIcon(R.drawable.ic_launcher);
+				mNotifyManager2 = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+				mNotifyManager2.notify(this.currentID, mBuilder2.build());
+
+			}
+
 			DCUser my_user = new DCUser();
 			DCUser his_user = new DCUser();
 			my_user.nick = prefs.getNick();
@@ -139,7 +154,6 @@ public class DCPPService extends IntentService {
 		public double avg_speed() {
 			return ((double) bytes_done()) / (millis_elapsed() / 1000.0);
 		}
-		
 
 		/**
 		 * Returns the current status of this download entity.
@@ -177,8 +191,6 @@ public class DCPPService extends IntentService {
 
 			@Override
 			public void run() {
-				downloadID++;
-				final int currentID = downloadID;
 
 				try {
 					while (true) {
@@ -187,7 +199,7 @@ public class DCPPService extends IntentService {
 						work.start_download();
 
 						work.mBuilder2
-								.setContentTitle("AnDC++ Downloading file")
+								.setContentTitle(work.file_name)
 								.setContentText(work.getFileName())
 								.setSmallIcon(R.drawable.ic_launcher);
 						mNotifyManager2 = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -196,13 +208,12 @@ public class DCPPService extends IntentService {
 							if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
 								work.mBuilder2.setProgress(0, 0, false);
 								work.mBuilder2
-										.setContentText(work.getFileName())
 										.setContentText("Download Complete")
 										.setTicker(
 												"Download Complete : "
-														+ work.getFileName());
+														+ work.file_name);
 
-								mNotifyManager2.notify(currentID,
+								mNotifyManager2.notify(work.currentID,
 										work.mBuilder2.build());
 
 								break;
@@ -211,15 +222,17 @@ public class DCPPService extends IntentService {
 								if (work.millis_elapsed() > Constants.DOWNLOAD_TIMEOUT_MILLIS)
 									break;
 							}
-							FileSize fs = new FileSize(work
-									.avg_speed());
+							FileSize fs = new FileSize(work.avg_speed());
 							work.mBuilder2.setProgress(
 									(int) work.total_bytes(),
 									(int) work.bytes_done(), false)
 									.setContentText(
 											"Download Speed:"
-													+ String.format("%.5g%n",fs.fileSize) + " "+fs.unit+" per second" );
-							mNotifyManager2.notify(currentID, work.mBuilder2.build());
+													+ String.format("%.5g%n",
+															fs.fileSize) + " "
+													+ fs.unit + " per second");
+							mNotifyManager2.notify(work.currentID,
+									work.mBuilder2.build());
 
 							try {
 								Thread.sleep(Constants.DOWNLOAD_UPDATE_INTERVAL_MILLIS);
