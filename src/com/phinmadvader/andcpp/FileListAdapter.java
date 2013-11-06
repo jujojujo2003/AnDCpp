@@ -10,6 +10,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.phinmadvader.andcpp.DCPPService.FileSize;
 import com.phinvader.libjdcpp.DCFileList;
 
 public class FileListAdapter extends ArrayAdapter<DCFileList>{
@@ -110,8 +111,8 @@ public class FileListAdapter extends ArrayAdapter<DCFileList>{
 	title.setText(file.name);
 	
 	int icon =  R.drawable.other;
-	
-	support.setText(Long.toString(file.size));
+	FileSize fs = new FileSize((double)file.size);
+	support.setText(String.format("%.5g", fs.fileSize)+" "+fs.unit);
 	
 
 	if(file.isDirectory()){

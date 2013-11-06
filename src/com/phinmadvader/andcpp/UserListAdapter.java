@@ -3,6 +3,8 @@ package com.phinmadvader.andcpp;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.phinmadvader.andcpp.DCPPService.FileSize;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
@@ -48,9 +50,9 @@ public class UserListAdapter extends ArrayAdapter<DCUserComparable> {
 		user = nickList.get(position);
 
 		title.setText(user.nick);
+		FileSize fs = new FileSize((double)user.share_size);
 		support.setText("Share :"
-				+ Double.toString(user.share_size / (1024 * 1024 * 1024))
-				+ "GB \t" + user.email);
+				+ String.format("%.5g",fs.fileSize) + fs.unit  +"\t"+ user.email);
 		if (user.active)
 			image.setImageResource(R.drawable.green_user);
 		else

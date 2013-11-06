@@ -1,5 +1,12 @@
 package com.phinmadvader.andcpp;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -10,9 +17,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationCompat.Builder;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.phinvader.libjdcpp.DCClient;
 import com.phinvader.libjdcpp.DCCommand;
@@ -23,14 +28,6 @@ import com.phinvader.libjdcpp.DCMessage;
 import com.phinvader.libjdcpp.DCPreferences;
 import com.phinvader.libjdcpp.DCUser;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-
 /**
  * Created by phinfinity on 11/08/13.
  */
@@ -38,6 +35,26 @@ public class DCPPService extends IntentService {
 	public static enum DCClientStatus {
 		DISCONNECTED, INVALIDIP, CONNECTED
 	}
+	
+	public static String[] FileUnits = {"Bytes", "KB", "MB", "GB", "TB"};
+	
+	public static class FileSize{
+		public double fileSize;
+		public String unit;
+		public FileSize(double size){
+			int i = 0 ; 
+			while(size > 1){
+				unit = FileUnits[i];
+				fileSize= size;
+				size/=1024;
+				i++;
+				
+			}
+		}
+		
+	}
+	
+	
 
 	private DCClientStatus status = DCClientStatus.DISCONNECTED;
 	private boolean is_connected = false;
@@ -47,9 +64,10 @@ public class DCPPService extends IntentService {
 	private DCCommand search_handler = null;
 	private DCPreferences prefs;
 	private int downloadID = 1;
+	NotificationManager mNotifyManager2;
 
 	public class DownloadObject {
-		NotificationManager mNotifyManager;
+		private NotificationCompat.Builder mBuilder2;
 		private String target_nick, local_file, remote_file;
 		private DCClient.PassiveDownloadConnection myrc;
 		private long milis_began;
@@ -57,17 +75,15 @@ public class DCPPService extends IntentService {
 		private long file_size = 0;
 		public DCDownloader.DownloadQueueEntity download_status = null;
 
-		private NotificationCompat.Builder mBuilder2;
 		public DownloadObject(String target_nick, String local_file,
 				String remote_file, DCPPService parent) {
-			mNotifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-			mBuilder2 = new NotificationCompat.Builder(
-					parent);
 			this.target_nick = target_nick;
 			this.local_file = local_file;
 			this.remote_file = remote_file;
 			String[] file_name_parts = remote_file.split("/");
 			file_name = file_name_parts[file_name_parts.length - 1];
+
+			mBuilder2 = new NotificationCompat.Builder(parent);
 			this.initialize_download_connection();
 		}
 
@@ -76,43 +92,9 @@ public class DCPPService extends IntentService {
 			DCUser his_user = new DCUser();
 			my_user.nick = prefs.getNick();
 			his_user.nick = target_nick;
-			initialize_download_tracking();
+			// initialize_download_tracking();
 			myrc = new DCClient.PassiveDownloadConnection(his_user, my_user,
 					prefs, local_file, remote_file, client);
-		}
-
-		private void initialize_download_tracking() {
-
-			mBuilder2.setContentTitle("AnDC++ Downloading file")
-					.setContentText(this.getFileName())
-					.setSmallIcon(R.drawable.ic_launcher);
-
-			final int currentID = downloadID;
-			downloadID++;
-			// Start a download tracker in a new thread.
-			new Thread(new Runnable() {
-				@Override
-				public void run() {
-					while (!is_finished()) {
-						mBuilder2.setProgress((int) total_bytes(),
-								(int) bytes_done(), false);
-						mNotifyManager.notify(currentID, mBuilder2.build());
-						try {
-							Thread.sleep(Constants.DOWNLOAD_UPDATE_INTERVAL_MILLIS);
-						} catch (InterruptedException e) {
-							Log.d("OOPS!", "sleep failure");
-						}
-					}
-					// When the download is finished, updates the notification
-					mBuilder2.setContentText(
-							"Download complete : " + getFileName())
-							.setProgress(0, 0, false)
-							.setTicker(
-									getFileName() + " download complete.");
-					mNotifyManager.notify(currentID, mBuilder2.build());
-				}
-			}).start();
-
 		}
 
 		public void start_download() throws InterruptedException {
@@ -157,6 +139,7 @@ public class DCPPService extends IntentService {
 		public double avg_speed() {
 			return ((double) bytes_done()) / (millis_elapsed() / 1000.0);
 		}
+		
 
 		/**
 		 * Returns the current status of this download entity.
@@ -179,7 +162,7 @@ public class DCPPService extends IntentService {
 		 * @return
 		 */
 		public boolean is_finished() {
-			if(download_status == null)
+			if (download_status == null)
 				return true;
 			return (download_status.status == DCConstants.DownloadStatus.COMPLETED
 					|| download_status.status == DCConstants.DownloadStatus.FAILED
@@ -191,20 +174,59 @@ public class DCPPService extends IntentService {
 			final ArrayBlockingQueue<DownloadObject> q,
 			final ArrayList<DownloadObject> initiated_list) {
 		return new Runnable() {
+
 			@Override
 			public void run() {
+				downloadID++;
+				final int currentID = downloadID;
+
 				try {
 					while (true) {
 						DownloadObject work = q.take();
 						initiated_list.add(work);
 						work.start_download();
+
+						work.mBuilder2
+								.setContentTitle("AnDC++ Downloading file")
+								.setContentText(work.getFileName())
+								.setSmallIcon(R.drawable.ic_launcher);
+						mNotifyManager2 = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
 						while (true) {
-							if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED)
+							if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
+								work.mBuilder2.setProgress(0, 0, false);
+								work.mBuilder2
+										.setContentText(work.getFileName())
+										.setContentText("Download Complete")
+										.setTicker(
+												"Download Complete : "
+														+ work.getFileName());
+
+								mNotifyManager2.notify(currentID,
+										work.mBuilder2.build());
+
 								break;
-							else if (work.download_status.status != DCConstants.DownloadStatus.DOWNLOADING) {
+
+							} else if (work.download_status.status != DCConstants.DownloadStatus.DOWNLOADING) {
 								if (work.millis_elapsed() > Constants.DOWNLOAD_TIMEOUT_MILLIS)
 									break;
 							}
+							FileSize fs = new FileSize(work
+									.avg_speed());
+							work.mBuilder2.setProgress(
+									(int) work.total_bytes(),
+									(int) work.bytes_done(), false)
+									.setContentText(
+											"Download Speed:"
+													+ String.format("%.5g%n",fs.fileSize) + " "+fs.unit+" per second" );
+							mNotifyManager2.notify(currentID, work.mBuilder2.build());
+
+							try {
+								Thread.sleep(Constants.DOWNLOAD_UPDATE_INTERVAL_MILLIS);
+							} catch (InterruptedException e) {
+								Log.d("OOPS!", "sleep failure");
+							}
+
 							Thread.sleep(Constants.DOWNLOAD_UPDATE_INTERVAL_MILLIS);
 						}
 						if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
@@ -213,17 +235,12 @@ public class DCPPService extends IntentService {
 									"Download " + work.getFileName()
 											+ " completed.");
 
-							// Toast.makeText(DCPPService.this, "Download " +
-							// work.getFileName() + " completed.",
-							// Toast.LENGTH_SHORT);
 						} else {
 							// Do Something here.
 							Log.e("download_service",
 									"Download " + work.getFileName()
 											+ " Failed!.");
-							// Toast.makeText(DCPPService.this, "Download " +
-							// work.getFileName() + " Failed!.",
-							// Toast.LENGTH_SHORT);
+
 						}
 					}
 				} catch (InterruptedException e) {
@@ -236,8 +253,7 @@ public class DCPPService extends IntentService {
 	private ArrayBlockingQueue<DownloadObject> normal_queue;
 	private ArrayList<DownloadObject> initiated_downloads;
 	private Thread normal_worker;
-	private NotificationManager mNotifyManager;
-	
+
 	public void download_file(String nick, String local_file,
 			String remote_file, long file_size) {
 
@@ -318,6 +334,9 @@ public class DCPPService extends IntentService {
 			}
 		} catch (InterruptedException e) {
 			Log.d("DCPPService", "Got an interrupted exception");
+			return null;
+		} catch (Exception e) {
+			Log.d("DCPPService", "Got an unknow exception in get_file_list");
 			return null;
 		}
 
