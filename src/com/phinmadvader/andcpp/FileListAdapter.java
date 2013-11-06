@@ -112,7 +112,7 @@ public class FileListAdapter extends ArrayAdapter<DCFileList>{
 	
 	int icon =  R.drawable.other;
 	FileSize fs = new FileSize((double)file.size);
-	support.setText(String.format("%.5g", fs.fileSize)+" "+fs.unit);
+	support.setText(String.format("%.4g", fs.fileSize)+" "+fs.unit);
 	
 
 	if(file.isDirectory()){

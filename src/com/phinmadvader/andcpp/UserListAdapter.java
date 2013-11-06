@@ -52,7 +52,7 @@ public class UserListAdapter extends ArrayAdapter<DCUserComparable> {
 		title.setText(user.nick);
 		FileSize fs = new FileSize((double)user.share_size);
 		support.setText("Share :"
-				+ String.format("%.5g",fs.fileSize) + fs.unit  +"\t"+ user.email);
+				+ String.format("%.4g",fs.fileSize) + fs.unit  +"\t"+ user.email);
 		if (user.active)
 			image.setImageResource(R.drawable.green_user);
 		else
