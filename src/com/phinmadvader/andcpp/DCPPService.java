@@ -230,7 +230,7 @@ public class DCPPService extends IntentService {
 											"Download Speed:"
 													+ String.format("%.5g%n",
 															fs.fileSize) + " "
-													+ fs.unit + " per second");
+													+ fs.unit + "/s");
 							mNotifyManager2.notify(work.currentID,
 									work.mBuilder2.build());
 
