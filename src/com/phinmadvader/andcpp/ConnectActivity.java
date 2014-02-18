@@ -6,21 +6,15 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.app.Activity;
 import android.os.IBinder;
 import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
-import android.view.View;
-import android.widget.Button;
+import android.view.MenuItem;
+import android.widget.SearchView;
+import android.widget.SearchView.OnQueryTextListener;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
-public class ConnectActivity extends FragmentActivity {
+public class ConnectActivity extends FragmentActivity implements OnQueryTextListener {
     // Declare Variables
     public ViewPager viewPager;
     public ViewPageAdapter adapter;
@@ -29,6 +23,8 @@ public class ConnectActivity extends FragmentActivity {
     SharedPreferences settings;
     boolean mBound = false;
     Poller poller;
+    private SearchView searchview;
+    private MenuItem searchmenuitem;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -69,6 +65,11 @@ public class ConnectActivity extends FragmentActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.connect, menu);
+        searchmenuitem = menu.findItem(R.id.action_search);
+        searchview = (SearchView) searchmenuitem.getActionView();
+        searchview.setSubmitButtonEnabled(true);
+        searchview.setOnQueryTextListener(this);
+        // TODO : when disconnected searchmenuitme.setVisible(false), and on connect only make search visible
         return true;
     }
 
@@ -100,4 +101,16 @@ public class ConnectActivity extends FragmentActivity {
     public void moveToPage(int page) {
         viewPager.setCurrentItem(page);
     }
+
+	@Override
+	public boolean onQueryTextChange(String newText) {
+		// TODO Nothing to do here , not possible auto-complete
+		return false;
+	}
+
+	@Override
+	public boolean onQueryTextSubmit(String query) {
+		mService.make_search(query);
+		return false;
+	}
 }

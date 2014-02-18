@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.IntentService;
 import android.app.NotificationManager;
@@ -62,8 +63,10 @@ public class DCPPService extends IntentService {
 	private DCCommand user_handler = null;
 	private DCCommand search_handler = null;
 	private DCPreferences prefs;
+	private DCUser myuser;
 	public int downloadID = 1;
 	NotificationManager mNotifyManager2;
+	public LinkedBlockingQueue<DCMessage> search_results;
 
 	public class DownloadObject {
 		private NotificationCompat.Builder mBuilder2;
@@ -198,8 +201,7 @@ public class DCPPService extends IntentService {
 						initiated_list.add(work);
 						work.start_download();
 
-						work.mBuilder2
-								.setContentTitle(work.file_name)
+						work.mBuilder2.setContentTitle(work.file_name)
 								.setContentText(work.getFileName())
 								.setSmallIcon(R.drawable.ic_launcher);
 						mNotifyManager2 = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -207,8 +209,8 @@ public class DCPPService extends IntentService {
 						while (true) {
 							if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
 								work.mBuilder2.setProgress(0, 0, false);
-								work.mBuilder2
-										.setContentText("Download Complete")
+								work.mBuilder2.setContentText(
+										"Download Complete")
 										.setTicker(
 												"Download Complete : "
 														+ work.file_name);
@@ -380,6 +382,7 @@ public class DCPPService extends IntentService {
 		public void onCommand(DCMessage dcMessage) {
 			if (search_handler != null)
 				search_handler.onCommand(dcMessage);
+			search_results.add(dcMessage);
 		}
 	}
 
@@ -401,6 +404,7 @@ public class DCPPService extends IntentService {
 
 	public DCPPService() {
 		super("DCPP Service");
+		search_results = new LinkedBlockingQueue<DCMessage>();
 	}
 
 	public class LocalBinder extends Binder {
@@ -424,7 +428,7 @@ public class DCPPService extends IntentService {
 				String nick = data.getString("nick");
 				String ip = data.getString("ip");
 				prefs = new DCPreferences(nick, 3000L * 1024 * 1024, ip);
-				DCUser myuser = new DCUser();
+				myuser = new DCUser();
 				myuser.nick = nick;
 				client = new DCClient();
 				try {
@@ -490,5 +494,12 @@ public class DCPPService extends IntentService {
 			// TODO Shutdown the DClient.
 			normal_worker.interrupt();
 		}
+	}
+
+	public void make_search(String searchtext) {
+		search_results.clear();
+		search_results = new LinkedBlockingQueue<DCMessage>(); //reset search results
+		Log.d("dcppservice", "Making search request " + searchtext);
+		client.searchForFile(searchtext, myuser, 1); // 1 is for files
 	}
 }
