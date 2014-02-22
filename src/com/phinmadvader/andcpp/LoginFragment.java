@@ -23,14 +23,15 @@ public class LoginFragment extends Fragment {
 	private Button connectButton;
 	private EditText nickText;
 	private EditText ipText;
-	private static String ConnectString = "Connect";
-	private static String DisconnectString = "Disconnect";
+	private final static String ConnectString = "Connect";
+	private final static String DisconnectString = "Disconnect";
 	private boolean is_connected = false;
-	private static String VIEW_IS_CONNECTED_BUNDLE_KEY = "VIEWCONNECTSTATE";
+	private final static String VIEW_IS_CONNECTED_BUNDLE_KEY = "VIEWCONNECTSTATE";
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
+		this.mainActivity = (MainActivity) getActivity();
 		View rootView = inflater.inflate(R.layout.login_layout, container,
 				false);
 		downloadLocation = (TextView) rootView.findViewById(R.id.textView5);
@@ -50,14 +51,17 @@ public class LoginFragment extends Fragment {
 		});
 
 		// Get preference
-		String ip = mainActivity.settings.getString(Constants.SETTINGS_IP_KEY,
-				"");
-		String nick = mainActivity.settings.getString(
+		String ip = mainActivity.getprefs().getString(
+				Constants.SETTINGS_IP_KEY, "");
+		String nick = mainActivity.getprefs().getString(
 				Constants.SETTINGS_NICK_KEY, "");
 		nickText.setText(nick);
 		ipText.setText(ip);
-		is_connected = savedInstanceState
-				.getBoolean(VIEW_IS_CONNECTED_BUNDLE_KEY);
+		if (savedInstanceState != null)
+			is_connected = savedInstanceState
+					.getBoolean(VIEW_IS_CONNECTED_BUNDLE_KEY);
+		else
+			is_connected = false;
 		setViewState(is_connected);
 		return rootView;
 	}
@@ -87,18 +91,6 @@ public class LoginFragment extends Fragment {
 		outState.putBoolean(VIEW_IS_CONNECTED_BUNDLE_KEY, is_connected);
 	}
 
-	@Override
-	public void onStart() {
-		super.onStart();
-		this.mainActivity = (MainActivity) getActivity();
-	}
-
-	@Override
-	public void onStop() {
-		super.onStop();
-		this.mainActivity = null;
-	}
-
 	public void disconnect() {
 		mainActivity.stopBackgroundService();
 		connectButton.setText(ConnectString);
@@ -122,7 +114,7 @@ public class LoginFragment extends Fragment {
 		}
 
 		// Store in preference
-		SharedPreferences.Editor editor = mainActivity.settings.edit();
+		SharedPreferences.Editor editor = mainActivity.getprefs().edit();
 		editor.putString(Constants.SETTINGS_NICK_KEY, nick);
 		editor.putString(Constants.SETTINGS_IP_KEY, ip);
 		editor.commit();

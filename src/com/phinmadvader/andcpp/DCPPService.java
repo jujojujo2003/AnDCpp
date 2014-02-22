@@ -402,6 +402,14 @@ public class DCPPService extends IntentService {
 		return client.get_nick_list();
 	}
 
+	public List<String> get_board_messages() {
+		ArrayList<String> ret = new ArrayList<String>();
+		for(DCMessage msg: client.getBoardMessages()) {
+			ret.add(msg.msg_s);
+		}
+		return ret;
+	}
+
 	public DCPPService() {
 		super("DCPP Service");
 		search_results = new LinkedBlockingQueue<DCMessage>();

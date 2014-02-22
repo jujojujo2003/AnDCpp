@@ -58,7 +58,7 @@ public class ConnectActivity extends FragmentActivity implements OnQueryTextList
 
 
         //Start Poller
-        poller = new Poller(this);
+        //poller = new Poller(this);
     }
 
     // Not using options menu in this tutorial

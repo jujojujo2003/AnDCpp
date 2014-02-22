@@ -1,47 +1,68 @@
 package com.phinmadvader.andcpp;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.support.v4.view.ViewPager;
-import android.util.Log;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
+import android.util.Log;
+
+import com.phinmadvader.andcpp.DCPPService.DCClientStatus;
+
 /**
  * Created by invader on 15/9/13.
- *
+ * 
  * This class does polling activities
  */
 public class Poller {
-    ConnectActivity connectActivity;
-    Poller(ConnectActivity connectActivity) {
-        this.connectActivity = connectActivity;
-        Timer mTimer = new Timer();
-        mTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                poll();
-            }
-        }, 0, Constants.POLLING_CLASS_TIME_IN_MILLIS);
-    }
+	MainActivity mainActivity;
+	private TimerTask task;
+	private Timer mTimer;
+	Poller(MainActivity mainActivity) {
+		this.mainActivity = mainActivity;
+		mTimer = new Timer();
+		task = new TimerTask() {
+			@Override
+			public void run() {
+				poll();
+			}
+		};
+		mTimer.scheduleAtFixedRate(task, 0, Constants.POLLING_CLASS_TIME_IN_MILLIS);
+	}
+	
+	public void stop() {
+		mTimer.cancel();
+	}
 
-    //Monitor Service State
-    private DCPPService.DCClientStatus clientStatus = DCPPService.DCClientStatus.DISCONNECTED;
-    void poll() {
-        if(connectActivity.mService!=null)
-        if(connectActivity.mService.get_status() != clientStatus) {
+	// Monitor Service State
+	private DCClientStatus currentStatus = DCClientStatus.DISCONNECTED;
 
-            //Disconnected->Connected
-            if(clientStatus == DCPPService.DCClientStatus.DISCONNECTED && connectActivity.mService.get_status() == DCPPService.DCClientStatus.CONNECTED) {
-                connectActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        connectActivity.adapter.loginView.refreshNickList();
-                    }
-                });
-            }
-            clientStatus = connectActivity.mService.get_status();
-        }
-    }
+	void poll() {
+		DCClientStatus newStatus;
+		if (mainActivity.mService == null)
+			newStatus = DCClientStatus.DISCONNECTED;
+		else
+			newStatus = mainActivity.mService.get_status();
+		if(mainActivity.mService == null)
+			Log.d("andcpp", "Poller: service is null");
+		Log.d("andcpp", "Poller got status: " + newStatus.toString());
+		if (newStatus != currentStatus) {
+			if (currentStatus == DCClientStatus.DISCONNECTED
+					&& newStatus == DCClientStatus.CONNECTED) {
+				mainActivity.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						mainActivity.onConnectUIChanges();
+					}
+				});
+			} else if (currentStatus == DCClientStatus.CONNECTED
+					&& newStatus == DCClientStatus.DISCONNECTED) {
+				mainActivity.runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						mainActivity.onDisonnectUIChanges();
+					}
+				});
+			}
+			currentStatus = newStatus;
+		}
+	}
 }
