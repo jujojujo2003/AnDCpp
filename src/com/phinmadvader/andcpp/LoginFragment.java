@@ -74,6 +74,8 @@ public class LoginFragment extends Fragment {
 	 */
 	public void setViewState(boolean is_connected) {
 		this.is_connected = is_connected;
+		if(connectButton == null || nickText == null || ipText == null)
+			return;
 		if (is_connected) {
 			connectButton.setText(DisconnectString);
 			nickText.setEnabled(false);

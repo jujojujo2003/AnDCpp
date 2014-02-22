@@ -2,6 +2,9 @@ package com.phinmadvader.andcpp;
 
 import java.io.File;
 
+import com.phinvader.libjdcpp.DCCommand;
+import com.phinvader.libjdcpp.DCMessage;
+
 import android.app.ActionBar;
 import android.content.ComponentName;
 import android.content.Context;
@@ -21,7 +24,8 @@ import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements
-		OnQueryTextListener {
+		OnQueryTextListener, DCCommand {
+
 	DCPPService mService;
 	boolean mBound = false;
 
@@ -40,15 +44,36 @@ public class MainActivity extends FragmentActivity implements
 			DCPPService.LocalBinder binder = (DCPPService.LocalBinder) service;
 			mService = binder.getService();
 			mBound = true;
+			Log.d("adncpp", "mservice is bound");
+			// All callbacks forwarded by MainActivity
+			mService.setBoard_message_handler(MainActivity.this);
+			mService.setSearch_handler(MainActivity.this);
+			mService.setUser_handler(MainActivity.this);
+			// Reffer onCommand(msg) for above callback setups
 		}
 
 		@Override
 		public void onServiceDisconnected(ComponentName name) {
 			mBound = false;
 			finish();
+			Log.d("adncpp", "mservice is got disconnected");
 		}
 	};
-	
+
+	@Override
+	public void onCommand(DCMessage msg) {
+		if (msg.command.equals("MyINFO")) {
+
+		} else if (msg.command.equals("Quit")) {
+
+		} else if (msg.command.equals("SR")) {
+
+		} else if (msg.command.equals("BoardMessage")) {
+			if (messageboard_fragment != null)
+				messageboard_fragment.add_msg(msg.msg_s);
+		}
+	}
+
 	public SharedPreferences getprefs() {
 		return getSharedPreferences(Constants.PREFS_NAME, 0);
 	}
@@ -56,16 +81,46 @@ public class MainActivity extends FragmentActivity implements
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		bindService(new Intent(this, DCPPService.class), mConnection,
+				Context.BIND_AUTO_CREATE);
 		setContentView(R.layout.connect_activity);
 		getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		view_pager = (ViewPager) findViewById(R.id.pager);
 		tab_page_adapter = new TabPagerAdapter(getSupportFragmentManager(),
-				getActionBar(), view_pager); // attaches and manages view_pager
-
+				getActionBar(), view_pager); // attaches and manages
+												// view_pager
 		login_fragment = new LoginFragment();
 		tab_page_adapter.add_tab(TabPagerAdapter.TAB_LOGININFO,
 				(Fragment) login_fragment, "Login Info");
 		messageboard_fragment = new MessageBoardFragment();
+		Log.d("andcpp", "CREATION");
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		// DON'T Save fragment states..
+		// TODO get aroun this workaround
+		// This was introduced to fix a bug where rotating display after
+		// connecting
+		// breaks everything. because service is not ready but android continues
+		// previous fragments.
+		// Possible solutioN: don't allow fragments to use service directly, and
+		// proxy somehow
+		//super.onSaveInstanceState(outState); // if uncommented will save and may
+												// break
+	}
+
+	@Override
+	protected void onDestroy() {
+		tab_page_adapter = null;
+		login_fragment = null;
+		messageboard_fragment = null;
+		view_pager.removeAllViews();
+		if (mBound) {
+			unbindService(mConnection);
+			mBound = false;
+		}
+		super.onDestroy();
 	}
 
 	@Override
@@ -81,12 +136,8 @@ public class MainActivity extends FragmentActivity implements
 
 	@Override
 	protected void onPause() {
-		super.onPause();
 		poller.stop();
-		if (mBound) {
-			unbindService(mConnection);
-			mBound = false;
-		}
+		super.onPause();
 	}
 
 	@Override
@@ -94,8 +145,6 @@ public class MainActivity extends FragmentActivity implements
 		super.onResume();
 		poller = new Poller(this); // start poller, will take care of service
 									// connect/disconnect updates
-		bindService(new Intent(this, DCPPService.class), mConnection,
-				Context.BIND_AUTO_CREATE);
 	}
 
 	@Override
@@ -139,7 +188,7 @@ public class MainActivity extends FragmentActivity implements
 	 * be carried out (called on UI Thread)
 	 */
 	public void onConnectUIChanges() {
-		Log.d("andcpp","Running Connect UI changes");
+		Log.d("andcpp", "Running Connect UI changes");
 		searchmenuitem.setVisible(true);
 		login_fragment.setViewState(true);
 		tab_page_adapter.add_tab(TabPagerAdapter.TAB_HUBCHAT,
@@ -151,7 +200,7 @@ public class MainActivity extends FragmentActivity implements
 	 * thread
 	 */
 	public void onDisonnectUIChanges() {
-		Log.d("andcpp","Running disconnect UI changes");
+		Log.d("andcpp", "Running disconnect UI changes");
 		searchmenuitem.setVisible(false);
 		login_fragment.setViewState(false);
 		tab_page_adapter.hide_tab(TabPagerAdapter.TAB_HUBCHAT);

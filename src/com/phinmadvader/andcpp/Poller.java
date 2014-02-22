@@ -41,9 +41,6 @@ public class Poller {
 			newStatus = DCClientStatus.DISCONNECTED;
 		else
 			newStatus = mainActivity.mService.get_status();
-		if(mainActivity.mService == null)
-			Log.d("andcpp", "Poller: service is null");
-		Log.d("andcpp", "Poller got status: " + newStatus.toString());
 		if (newStatus != currentStatus) {
 			if (currentStatus == DCClientStatus.DISCONNECTED
 					&& newStatus == DCClientStatus.CONNECTED) {
