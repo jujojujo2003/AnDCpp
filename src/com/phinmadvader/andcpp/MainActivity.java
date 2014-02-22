@@ -2,9 +2,6 @@ package com.phinmadvader.andcpp;
 
 import java.io.File;
 
-import com.phinvader.libjdcpp.DCCommand;
-import com.phinvader.libjdcpp.DCMessage;
-
 import android.app.ActionBar;
 import android.content.ComponentName;
 import android.content.Context;
@@ -23,6 +20,10 @@ import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
 
+import com.phinvader.libjdcpp.DCCommand;
+import com.phinvader.libjdcpp.DCFileList;
+import com.phinvader.libjdcpp.DCMessage;
+
 public class MainActivity extends FragmentActivity implements
 		OnQueryTextListener, DCCommand {
 
@@ -37,6 +38,7 @@ public class MainActivity extends FragmentActivity implements
 	private ViewPager view_pager;
 	private LoginFragment login_fragment;
 	private MessageBoardFragment messageboard_fragment;
+	private UserListFragment userlist_fragment;
 
 	private ServiceConnection mConnection = new ServiceConnection() {
 		@Override
@@ -63,13 +65,15 @@ public class MainActivity extends FragmentActivity implements
 	@Override
 	public void onCommand(DCMessage msg) {
 		if (msg.command.equals("MyINFO")) {
-
+			if (userlist_fragment != null && userlist_fragment.is_ready)
+				userlist_fragment.addOneNick(msg);
 		} else if (msg.command.equals("Quit")) {
-
+			if (userlist_fragment != null && userlist_fragment.is_ready)
+				userlist_fragment.delNick(new DCUserComparable(msg.quit_s));
 		} else if (msg.command.equals("SR")) {
 
 		} else if (msg.command.equals("BoardMessage")) {
-			if (messageboard_fragment != null)
+			if (messageboard_fragment != null && messageboard_fragment.is_ready)
 				messageboard_fragment.add_msg(msg.msg_s);
 		}
 	}
@@ -86,13 +90,22 @@ public class MainActivity extends FragmentActivity implements
 		setContentView(R.layout.connect_activity);
 		getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		view_pager = (ViewPager) findViewById(R.id.pager);
+		view_pager.setOffscreenPageLimit(32); // TODO : FIXTHIS
+		// ^ this is a hack, basically without this fragments keep getting
+		// recreated which is painful for us to maintain state, moreover
+		// saveinstance doesn't seem to work on loginframgnet, resulting in
+		// loginfragment being reset to a state without a disconnect button
+		// which is problematic
 		tab_page_adapter = new TabPagerAdapter(getSupportFragmentManager(),
 				getActionBar(), view_pager); // attaches and manages
 												// view_pager
+
 		login_fragment = new LoginFragment();
+		messageboard_fragment = new MessageBoardFragment();
+		userlist_fragment = new UserListFragment();
+
 		tab_page_adapter.add_tab(TabPagerAdapter.TAB_LOGININFO,
 				(Fragment) login_fragment, "Login Info");
-		messageboard_fragment = new MessageBoardFragment();
 		Log.d("andcpp", "CREATION");
 	}
 
@@ -106,8 +119,10 @@ public class MainActivity extends FragmentActivity implements
 		// previous fragments.
 		// Possible solutioN: don't allow fragments to use service directly, and
 		// proxy somehow
-		//super.onSaveInstanceState(outState); // if uncommented will save and may
-												// break
+		// super.onSaveInstanceState(outState); // if uncommented will save and
+		// may
+		// break
+		Log.d("andcpp", "MainActivity Saving state");
 	}
 
 	@Override
@@ -115,6 +130,7 @@ public class MainActivity extends FragmentActivity implements
 		tab_page_adapter = null;
 		login_fragment = null;
 		messageboard_fragment = null;
+		userlist_fragment = null;
 		view_pager.removeAllViews();
 		if (mBound) {
 			unbindService(mConnection);
@@ -193,6 +209,8 @@ public class MainActivity extends FragmentActivity implements
 		login_fragment.setViewState(true);
 		tab_page_adapter.add_tab(TabPagerAdapter.TAB_HUBCHAT,
 				messageboard_fragment, "HubChat");
+		tab_page_adapter.add_tab(TabPagerAdapter.TAB_USERLIST,
+				userlist_fragment, "UserList");
 	}
 
 	/**
@@ -204,6 +222,52 @@ public class MainActivity extends FragmentActivity implements
 		searchmenuitem.setVisible(false);
 		login_fragment.setViewState(false);
 		tab_page_adapter.hide_tab(TabPagerAdapter.TAB_HUBCHAT);
+		tab_page_adapter.hide_tab(TabPagerAdapter.TAB_USERLIST);
+		tab_page_adapter.hide_tab(TabPagerAdapter.TAB_FILELIST);
+		tab_page_adapter.hide_tab(TabPagerAdapter.TAB_SEARCHLIST);
 	}
 
+	public void open_file_list(DCUserComparable user) {
+		// TODO: COMPLETE CODE FOR OPENING FILE LIST
+		final String nick = user.nick;
+		if (!user.active) {
+			Toast.makeText(this, "Cannot download from Passive (Red) users.",
+					Toast.LENGTH_SHORT).show();
+			return;
+		}
+		Toast.makeText(this, "Fetching file list of " + nick,
+				Toast.LENGTH_SHORT).show();
+		Thread fileDownloadThread = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				final DCFileList fileList = mService.get_file_list(nick);
+
+				if (fileList == null) {
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							Toast.makeText(MainActivity.this,
+									"Slot not available.", Toast.LENGTH_LONG)
+									.show();
+						}
+					});
+					return;
+				}
+				Log.i("SIZE", Long.toString(fileList.size));
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						Toast.makeText(MainActivity.this,
+								"User FileList download done",
+								Toast.LENGTH_LONG).show();
+						// fileList is ur file lsit
+						// Make a FileListView and append
+						// TODO DO STH
+					}
+				});
+
+			}
+		});
+		fileDownloadThread.start();
+	}
 }

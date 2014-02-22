@@ -16,6 +16,7 @@ import android.widget.TextView;
 public class MessageBoardFragment extends Fragment {
 	private MainActivity mainActivity;
 	private TextView msg_board;
+	public boolean is_ready = false;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -33,17 +34,16 @@ public class MessageBoardFragment extends Fragment {
 				msg_board.append(msg + "\n");
 			}
 		}
+		is_ready = true;
 		return sv;
 	}
 
 	public void add_msg(final String msg) {
-		if (msg_board != null) {
-			mainActivity.runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					msg_board.append(msg + "\n");
-				}
-			});
-		}
+		mainActivity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				msg_board.append(msg + "\n");
+			}
+		});
 	}
 }

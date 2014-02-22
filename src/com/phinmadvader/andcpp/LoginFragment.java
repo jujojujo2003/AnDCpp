@@ -5,6 +5,7 @@ import org.apache.http.conn.util.InetAddressUtils;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -62,6 +63,10 @@ public class LoginFragment extends Fragment {
 					.getBoolean(VIEW_IS_CONNECTED_BUNDLE_KEY);
 		else
 			is_connected = false;
+		if (savedInstanceState == null)
+			Log.d("andcpp", "LoginFragment recreated with null state");
+		else
+			Log.d("andcpp", "LoginFragment recreated with save state");
 		setViewState(is_connected);
 		return rootView;
 	}
@@ -73,8 +78,10 @@ public class LoginFragment extends Fragment {
 	 * @param is_connected
 	 */
 	public void setViewState(boolean is_connected) {
+		Log.d("andcpp",
+				"VIEW STATE SETTING TO : " + Boolean.toString(is_connected));
 		this.is_connected = is_connected;
-		if(connectButton == null || nickText == null || ipText == null)
+		if (connectButton == null || nickText == null || ipText == null)
 			return;
 		if (is_connected) {
 			connectButton.setText(DisconnectString);
@@ -91,6 +98,7 @@ public class LoginFragment extends Fragment {
 	public void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
 		outState.putBoolean(VIEW_IS_CONNECTED_BUNDLE_KEY, is_connected);
+		Log.d("andcpp", "Login fragment is saving...");
 	}
 
 	public void disconnect() {
