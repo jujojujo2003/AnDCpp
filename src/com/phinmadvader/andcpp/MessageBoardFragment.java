@@ -28,15 +28,19 @@ public class MessageBoardFragment extends Fragment implements DCCommand {
 		sv.addView(msg_board);
 		return sv;
 	}
-	
+
 	@Override
 	public void onStart() {
 		super.onStart();
 		this.mainActivity = (MainActivity) getActivity();
-		List<String> current_messages = mainActivity.mService.get_board_messages();
+		List<String> current_messages = null;
+		if (mainActivity != null && mainActivity.mBound)
+			current_messages = mainActivity.mService.get_board_messages();
 		mainActivity.mService.setBoard_message_handler(this);
-		for(String msg: current_messages) {
-			msg_board.append(msg + "\n");
+		if (current_messages != null) {
+			for (String msg : current_messages) {
+				msg_board.append(msg + "\n");
+			}
 		}
 	}
 
