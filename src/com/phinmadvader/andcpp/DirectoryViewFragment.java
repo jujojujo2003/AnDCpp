@@ -65,9 +65,9 @@ public class DirectoryViewFragment extends Fragment {
 							// Download File
 							String path = filelist_fragment.filelist_stack.get(0).name;
 							for (int j = 1; j <= depth; j++)
-								path += "\\" + filelist_fragment.filelist_stack.get(j).name;
-							path += "\\" + fileList.get(i).name;
-							Log.e("PATH", path);
+								path += filelist_fragment.filelist_stack.get(j).name + "/";
+							path +=  fileList.get(i).name;
+							Log.e("andcpp", path);
 							mainActivity.mService.download_file(
 									mainActivity.chosenNick,
 									Constants.dcDirectory + "/"

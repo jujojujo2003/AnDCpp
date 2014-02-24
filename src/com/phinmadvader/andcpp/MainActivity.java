@@ -61,7 +61,7 @@ public class MainActivity extends FragmentActivity implements
 			DCPPService.LocalBinder binder = (DCPPService.LocalBinder) service;
 			mService = binder.getService();
 			mBound = true;
-			Log.d("adncpp", "mservice is bound");
+			Log.d("andcpp", "mservice is bound");
 			// All callbacks forwarded by MainActivity
 			mService.setBoard_message_handler(MainActivity.this);
 			mService.setSearch_handler(MainActivity.this);
@@ -73,7 +73,7 @@ public class MainActivity extends FragmentActivity implements
 		public void onServiceDisconnected(ComponentName name) {
 			mBound = false;
 			finish();
-			Log.d("adncpp", "mservice is got disconnected");
+			Log.d("andcpp", "mservice is got disconnected");
 		}
 	};
 
@@ -272,7 +272,7 @@ public class MainActivity extends FragmentActivity implements
 					});
 					return;
 				}
-				Log.i("SIZE", Long.toString(fileList.size));
+				Log.i("andcpp","File size : " +  Long.toString(fileList.size));
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
