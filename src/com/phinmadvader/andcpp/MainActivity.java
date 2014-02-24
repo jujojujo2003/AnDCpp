@@ -1,6 +1,8 @@
 package com.phinmadvader.andcpp;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import android.app.ActionBar;
 import android.content.ComponentName;
@@ -13,9 +15,12 @@ import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.text.method.HideReturnsTransformationMethod;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
@@ -39,6 +44,16 @@ public class MainActivity extends FragmentActivity implements
 	private LoginFragment login_fragment;
 	private MessageBoardFragment messageboard_fragment;
 	private UserListFragment userlist_fragment;
+	private FileListFragment filelist_fragment;
+
+	// FileList stack variables
+	// TODO: This ought to be nested in some filelist management class
+	// (filelistfragment? sth new?) and not strewn around randomly as presently
+	public DCFileList rootfileList;
+	public String chosenNick;
+	public FileListFragment get_filelist_fragment() {
+		return filelist_fragment;
+	}
 
 	private ServiceConnection mConnection = new ServiceConnection() {
 		@Override
@@ -87,9 +102,9 @@ public class MainActivity extends FragmentActivity implements
 		super.onCreate(savedInstanceState);
 		bindService(new Intent(this, DCPPService.class), mConnection,
 				Context.BIND_AUTO_CREATE);
-		setContentView(R.layout.connect_activity);
+		setContentView(R.layout.main_activity);
 		getActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		view_pager = (ViewPager) findViewById(R.id.pager);
+		view_pager = (ViewPager) findViewById(R.id.pager_root);
 		view_pager.setOffscreenPageLimit(32); // TODO : FIXTHIS
 		// ^ this is a hack, basically without this fragments keep getting
 		// recreated which is painful for us to maintain state, moreover
@@ -103,6 +118,7 @@ public class MainActivity extends FragmentActivity implements
 		login_fragment = new LoginFragment();
 		messageboard_fragment = new MessageBoardFragment();
 		userlist_fragment = new UserListFragment();
+		filelist_fragment = new FileListFragment();
 
 		tab_page_adapter.add_tab(TabPagerAdapter.TAB_LOGININFO,
 				(Fragment) login_fragment, "Login Info");
@@ -131,6 +147,9 @@ public class MainActivity extends FragmentActivity implements
 		login_fragment = null;
 		messageboard_fragment = null;
 		userlist_fragment = null;
+		filelist_fragment = null;
+		chosenNick = null;
+		rootfileList = null;
 		view_pager.removeAllViews();
 		if (mBound) {
 			unbindService(mConnection);
@@ -260,6 +279,11 @@ public class MainActivity extends FragmentActivity implements
 						Toast.makeText(MainActivity.this,
 								"User FileList download done",
 								Toast.LENGTH_LONG).show();
+						MainActivity.this.rootfileList = fileList;
+						MainActivity.this.chosenNick = nick;
+						tab_page_adapter.add_tab(TabPagerAdapter.TAB_FILELIST,
+								filelist_fragment, nick + "'s FileList");
+						// now launch tab
 						// fileList is ur file lsit
 						// Make a FileListView and append
 						// TODO DO STH
