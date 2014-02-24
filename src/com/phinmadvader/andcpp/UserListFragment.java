@@ -80,8 +80,6 @@ public class UserListFragment extends Fragment {
 
 					// TODO : A better way to reload list on <BACKSPACE>
 					// This is just a stub for the functionality.
-
-					nickList.clear();
 					clearNicklistConstraints();
 				}
 				if (arg0.length() > 0)
@@ -117,48 +115,65 @@ public class UserListFragment extends Fragment {
 	}
 
 	public void addNick(final List<DCUserComparable> nicks) {
-		synchronized (nickSet) {
-			for (int i = 0; i < nicks.size(); i++)
-				if (nickSet.contains(nicks.get(i))) {
-					nicks.remove(i);
+		mainActivity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				synchronized (nickSet) {
+					for (int i = 0; i < nicks.size(); i++)
+						if (nickSet.contains(nicks.get(i))) {
+							nicks.remove(i);
+						}
+					for (int i = 0; i < nicks.size(); i++) {
+						nickSet.add(nicks.get(i));
+						nickList.add(nicks.get(i));
+					}
+					Collections.sort(nickList);
 				}
-			for (int i = 0; i < nicks.size(); i++) {
-				nickSet.add(nicks.get(i));
-				nickList.add(nicks.get(i));
+				refreshViewFromData();
 			}
-			Collections.sort(nickList);
-		}
-		refreshViewFromData();
+		});
 	}
 
 	public void delNick(final DCUserComparable nick) {
-		synchronized (nickSet) {
-			if (!nickSet.contains(nick))
-				return;
-			for (int i = 0; i < nickList.size(); i++) {
-				if (nickList.get(i).equals(nick)) {
-					nickList.remove(i);
-					break;
+		mainActivity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				synchronized (nickSet) {
+					if (!nickSet.contains(nick))
+						return;
+					for (int i = 0; i < nickList.size(); i++) {
+						if (nickList.get(i).equals(nick)) {
+							nickList.remove(i);
+							break;
+						}
+					}
+					nickSet.remove(nick);
 				}
+				refreshViewFromData();
 			}
-			nickSet.remove(nick);
-		}
-		refreshViewFromData();
+		});
 	}
 
 	public void clearNicklistConstraints() {
-		if (mainActivity.mService == null)
-			return;
-		if (mainActivity.mService.get_status() != DCPPService.DCClientStatus.CONNECTED)
-			return;
-		// connectActivity.moveToPage(1);
-		List<DCUser> nickList = mainActivity.mService.get_nick_list();
-		List<DCUserComparable> nickListString = new ArrayList<DCUserComparable>();
-		for (int i = 0; i < nickList.size(); i++) {
-			nickListString.add(new DCUserComparable(nickList.get(i)));
-		}
-		addNick(nickListString);
-		refreshViewFromData();
+		mainActivity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				nickList.clear();
+				if (mainActivity.mService == null)
+					return;
+				if (mainActivity.mService.get_status() != DCPPService.DCClientStatus.CONNECTED)
+					return;
+				// connectActivity.moveToPage(1);
+				List<DCUser> newNickList = mainActivity.mService
+						.get_nick_list();
+				List<DCUserComparable> nickListString = new ArrayList<DCUserComparable>();
+				for (int i = 0; i < newNickList.size(); i++) {
+					nickListString.add(new DCUserComparable(newNickList.get(i)));
+				}
+				addNick(nickListString);
+				refreshViewFromData();
+			}
+		});
 	}
 
 	public void refreshViewFromData() {
