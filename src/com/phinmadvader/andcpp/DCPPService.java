@@ -456,7 +456,7 @@ public class DCPPService extends IntentService {
 				status = DCClientStatus.CONNECTED;
 				is_connected = true;
 				Intent notification_intent = new Intent(this,
-						ConnectActivity.class);
+						MainActivity.class);
 				PendingIntent pendingIntent = PendingIntent.getActivity(this,
 						0, notification_intent, 0);
 				NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
