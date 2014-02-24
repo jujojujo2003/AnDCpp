@@ -10,9 +10,6 @@ import android.view.ViewGroup;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-/**
- * Created by invader on 8/11/13.
- */
 public class MessageBoardFragment extends Fragment {
 	private MainActivity mainActivity;
 	private TextView msg_board;
