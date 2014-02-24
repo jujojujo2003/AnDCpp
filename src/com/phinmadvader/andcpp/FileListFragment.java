@@ -27,27 +27,40 @@ public class FileListFragment extends Fragment {
 	public boolean is_ready = false;
 
 	public List<DCFileList> filelist_stack;
-	
+
 	private FileListSectionAdapter mFilelistSectionAdapter;
-	private ViewPager mViewPager; 
+	private ViewPager mViewPager;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		mainActivity = (MainActivity) getActivity();
 		filelist_stack = new ArrayList<DCFileList>();
-		filelist_stack.add(mainActivity.rootfileList);
-		
-		View rootview = inflater.inflate(R.layout.file_list_view_pager, container, false);
-		mFilelistSectionAdapter = new FileListSectionAdapter(getFragmentManager());
+
+		View rootview = inflater.inflate(R.layout.file_list_view_pager,
+				container, false);
+		mFilelistSectionAdapter = new FileListSectionAdapter(
+				getFragmentManager());
 		mViewPager = (ViewPager) rootview.findViewById(R.id.pager_file_list);
-		//mViewPager.setOffscreenPageLimit(32); //TODO: fix hack, to prevent unloading fragments
+		// mViewPager.setOffscreenPageLimit(32); //TODO: fix hack, to prevent
+		// unloading fragments
 		mViewPager.setAdapter(mFilelistSectionAdapter);
-		
+
 		is_ready = true;
 		return rootview;
 	}
-	
+
+	public void refreshToNewFileList() {
+		mainActivity.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				filelist_stack.clear();
+				filelist_stack.add(mainActivity.rootfileList);
+				mFilelistSectionAdapter.notifyDataSetChanged();
+			}
+		});
+	}
+
 	/**
 	 * Element at depth , adds a new directory listing of dir at depth = depth +
 	 * 1
@@ -63,6 +76,7 @@ public class FileListFragment extends Fragment {
 		mViewPager.setCurrentItem(filelist_stack.size());
 		// make new pager update
 	}
+
 	public class FileListSectionAdapter extends FragmentPagerAdapter {
 
 		public FileListSectionAdapter(FragmentManager fm) {
@@ -78,6 +92,6 @@ public class FileListFragment extends Fragment {
 		public int getCount() {
 			return filelist_stack.size();
 		}
-		
+
 	}
 }

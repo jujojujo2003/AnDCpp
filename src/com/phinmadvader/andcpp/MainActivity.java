@@ -281,6 +281,7 @@ public class MainActivity extends FragmentActivity implements
 								Toast.LENGTH_LONG).show();
 						MainActivity.this.rootfileList = fileList;
 						MainActivity.this.chosenNick = nick;
+						filelist_fragment.refreshToNewFileList();
 						tab_page_adapter.add_tab(TabPagerAdapter.TAB_FILELIST,
 								filelist_fragment, nick + "'s FileList");
 						// now launch tab
