@@ -3,22 +3,15 @@ package com.phinmadvader.andcpp;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
-import android.graphics.Path.FillType;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.phinvader.libjdcpp.DCFileList;
 
@@ -36,7 +29,7 @@ public class FileListFragment extends Fragment {
 			Bundle savedInstanceState) {
 		mainActivity = (MainActivity) getActivity();
 		filelist_stack = new ArrayList<DCFileList>();
-
+		filelist_stack.add(mainActivity.rootfileList);
 		View rootview = inflater.inflate(R.layout.file_list_view_pager,
 				container, false);
 		mFilelistSectionAdapter = new FileListSectionAdapter(
@@ -51,14 +44,11 @@ public class FileListFragment extends Fragment {
 	}
 
 	public void refreshToNewFileList() {
-		mainActivity.runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				filelist_stack.clear();
-				filelist_stack.add(mainActivity.rootfileList);
-				mFilelistSectionAdapter.notifyDataSetChanged();
-			}
-		});
+		if (is_ready) {
+			filelist_stack.clear();
+			filelist_stack.add(mainActivity.rootfileList);
+			mFilelistSectionAdapter.notifyDataSetChanged();
+		}
 	}
 
 	/**
@@ -77,7 +67,7 @@ public class FileListFragment extends Fragment {
 		// make new pager update
 	}
 
-	public class FileListSectionAdapter extends FragmentPagerAdapter {
+	public class FileListSectionAdapter extends FragmentStatePagerAdapter {
 
 		public FileListSectionAdapter(FragmentManager fm) {
 			super(fm);
@@ -91,6 +81,12 @@ public class FileListFragment extends Fragment {
 		@Override
 		public int getCount() {
 			return filelist_stack.size();
+		}
+
+		@Override
+		public int getItemPosition(Object object) {
+			// https://stackoverflow.com/questions/10849552/android-viewpager-cant-update-dynamically
+			return POSITION_NONE; // Force fragment to be re-rendered on notify
 		}
 
 	}

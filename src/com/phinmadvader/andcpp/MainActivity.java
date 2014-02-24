@@ -282,6 +282,7 @@ public class MainActivity extends FragmentActivity implements
 						MainActivity.this.rootfileList = fileList;
 						MainActivity.this.chosenNick = nick;
 						filelist_fragment.refreshToNewFileList();
+						Log.d("andcpp", "First file name : " + fileList.children.get(0).name);
 						tab_page_adapter.add_tab(TabPagerAdapter.TAB_FILELIST,
 								filelist_fragment, nick + "'s FileList");
 						// now launch tab
