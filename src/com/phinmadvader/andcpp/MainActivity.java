@@ -45,12 +45,14 @@ public class MainActivity extends FragmentActivity implements
 	private MessageBoardFragment messageboard_fragment;
 	private UserListFragment userlist_fragment;
 	private FileListFragment filelist_fragment;
+	private SearchResultsFragment searchresult_fragment;
 
 	// FileList stack variables
 	// TODO: This ought to be nested in some filelist management class
 	// (filelistfragment? sth new?) and not strewn around randomly as presently
 	public DCFileList rootfileList;
 	public String chosenNick;
+
 	public FileListFragment get_filelist_fragment() {
 		return filelist_fragment;
 	}
@@ -78,19 +80,27 @@ public class MainActivity extends FragmentActivity implements
 	};
 
 	@Override
-	public void onCommand(DCMessage msg) {
-		if (msg.command.equals("MyINFO")) {
-			if (userlist_fragment != null && userlist_fragment.is_ready)
-				userlist_fragment.addOneNick(msg);
-		} else if (msg.command.equals("Quit")) {
-			if (userlist_fragment != null && userlist_fragment.is_ready)
-				userlist_fragment.delNick(new DCUserComparable(msg.quit_s));
-		} else if (msg.command.equals("SR")) {
-
-		} else if (msg.command.equals("BoardMessage")) {
-			if (messageboard_fragment != null && messageboard_fragment.is_ready)
-				messageboard_fragment.add_msg(msg.msg_s);
-		}
+	public void onCommand(final DCMessage msg) {
+		// These all cause UI changes, so force run on UI thread by default
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (msg.command.equals("MyINFO")) {
+					if (userlist_fragment != null && userlist_fragment.is_ready)
+						userlist_fragment.addOneNick(msg);
+				} else if (msg.command.equals("Quit")) {
+					if (userlist_fragment != null && userlist_fragment.is_ready)
+						userlist_fragment.delNick(new DCUserComparable(
+								msg.quit_s));
+				} else if (msg.command.equals("SR")) {
+					searchresult_fragment.add_search_result(msg);
+				} else if (msg.command.equals("BoardMessage")) {
+					if (messageboard_fragment != null
+							&& messageboard_fragment.is_ready)
+						messageboard_fragment.add_msg(msg.msg_s);
+				}
+			}
+		});
 	}
 
 	public SharedPreferences getprefs() {
@@ -119,7 +129,7 @@ public class MainActivity extends FragmentActivity implements
 		messageboard_fragment = new MessageBoardFragment();
 		userlist_fragment = new UserListFragment();
 		filelist_fragment = new FileListFragment();
-
+		searchresult_fragment = new SearchResultsFragment();
 		tab_page_adapter.add_tab(TabPagerAdapter.TAB_LOGININFO,
 				(Fragment) login_fragment, "Login Info");
 		Log.d("andcpp", "CREATION");
@@ -148,6 +158,7 @@ public class MainActivity extends FragmentActivity implements
 		messageboard_fragment = null;
 		userlist_fragment = null;
 		filelist_fragment = null;
+		searchresult_fragment = null;
 		chosenNick = null;
 		rootfileList = null;
 		view_pager.removeAllViews();
@@ -190,6 +201,12 @@ public class MainActivity extends FragmentActivity implements
 
 	@Override
 	public boolean onQueryTextSubmit(String query) {
+		searchview.setQuery("", false);
+		searchview.clearFocus();
+		
+		searchresult_fragment.clear_search_results();
+		tab_page_adapter.add_tab(TabPagerAdapter.TAB_SEARCHLIST,
+				searchresult_fragment, "Search Results");
 		mService.make_search(query);
 		return false;
 	}
@@ -272,7 +289,7 @@ public class MainActivity extends FragmentActivity implements
 					});
 					return;
 				}
-				Log.i("andcpp","File size : " +  Long.toString(fileList.size));
+				Log.i("andcpp", "File size : " + Long.toString(fileList.size));
 				runOnUiThread(new Runnable() {
 					@Override
 					public void run() {
@@ -282,7 +299,8 @@ public class MainActivity extends FragmentActivity implements
 						MainActivity.this.rootfileList = fileList;
 						MainActivity.this.chosenNick = nick;
 						filelist_fragment.refreshToNewFileList();
-						Log.d("andcpp", "First file name : " + fileList.children.get(0).name);
+						Log.d("andcpp", "First file name : "
+								+ fileList.children.get(0).name);
 						tab_page_adapter.add_tab(TabPagerAdapter.TAB_FILELIST,
 								filelist_fragment, nick + "'s FileList");
 						// now launch tab
