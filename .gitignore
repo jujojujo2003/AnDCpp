@@ -16,3 +16,6 @@ gen/
 local.properties
 
 .settings
+
+#IntelliJ local files
+.idea/*
