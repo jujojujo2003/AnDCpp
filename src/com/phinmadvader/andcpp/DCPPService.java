@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.IntentService;
 import android.app.NotificationManager;
@@ -62,8 +63,10 @@ public class DCPPService extends IntentService {
 	private DCCommand user_handler = null;
 	private DCCommand search_handler = null;
 	private DCPreferences prefs;
+	private DCUser myuser;
 	public int downloadID = 1;
 	NotificationManager mNotifyManager2;
+	public LinkedBlockingQueue<DCMessage> search_results;
 
 	public class DownloadObject {
 		private NotificationCompat.Builder mBuilder2;
@@ -198,8 +201,7 @@ public class DCPPService extends IntentService {
 						initiated_list.add(work);
 						work.start_download();
 
-						work.mBuilder2
-								.setContentTitle(work.file_name)
+						work.mBuilder2.setContentTitle(work.file_name)
 								.setContentText(work.getFileName())
 								.setSmallIcon(R.drawable.ic_launcher);
 						mNotifyManager2 = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -207,8 +209,8 @@ public class DCPPService extends IntentService {
 						while (true) {
 							if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
 								work.mBuilder2.setProgress(0, 0, false);
-								work.mBuilder2
-										.setContentText("Download Complete")
+								work.mBuilder2.setContentText(
+										"Download Complete")
 										.setTicker(
 												"Download Complete : "
 														+ work.file_name);
@@ -237,20 +239,20 @@ public class DCPPService extends IntentService {
 							try {
 								Thread.sleep(Constants.DOWNLOAD_UPDATE_INTERVAL_MILLIS);
 							} catch (InterruptedException e) {
-								Log.d("OOPS!", "sleep failure");
+								Log.d("andcpp", "sleep failure");
 							}
 
 							Thread.sleep(Constants.DOWNLOAD_UPDATE_INTERVAL_MILLIS);
 						}
 						if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
 							// Do something here.
-							Log.i("download_service",
+							Log.i("andcpp",
 									"Download " + work.getFileName()
 											+ " completed.");
 
 						} else {
 							// Do Something here.
-							Log.e("download_service",
+							Log.e("andcpp",
 									"Download " + work.getFileName()
 											+ " Failed!.");
 
@@ -327,8 +329,8 @@ public class DCPPService extends IntentService {
 					break;
 				else if (obj.download_status.status != DCConstants.DownloadStatus.DOWNLOADING) {
 					if (obj.millis_elapsed() > Constants.DOWNLOAD_TIMEOUT_MILLIS) {
-						Log.d("download_file_list",
-								"Timeout reached : " + obj.millis_elapsed());
+						Log.d("andcpp",
+								"download_filelist Timeout reached : " + obj.millis_elapsed());
 						break;
 					}
 				}
@@ -342,14 +344,14 @@ public class DCPPService extends IntentService {
 				String s = "null";
 				if (obj.download_status.status != null)
 					s = obj.download_status.status.name();
-				Log.d("download_file_list", "Got download status as : " + s);
+				Log.d("andcpp", "download_file_list: Got download status as : " + s);
 				return null;
 			}
 		} catch (InterruptedException e) {
-			Log.d("DCPPService", "Got an interrupted exception");
+			Log.d("andcpp", "DCPPService: Got an interrupted exception");
 			return null;
 		} catch (Exception e) {
-			Log.d("DCPPService", "Got an unknow exception in get_file_list");
+			Log.d("andcpp", "DCPPService: Got an unknow exception in get_file_list");
 			return null;
 		}
 
@@ -380,6 +382,7 @@ public class DCPPService extends IntentService {
 		public void onCommand(DCMessage dcMessage) {
 			if (search_handler != null)
 				search_handler.onCommand(dcMessage);
+			search_results.add(dcMessage);
 		}
 	}
 
@@ -399,8 +402,17 @@ public class DCPPService extends IntentService {
 		return client.get_nick_list();
 	}
 
+	public List<String> get_board_messages() {
+		ArrayList<String> ret = new ArrayList<String>();
+		for(DCMessage msg: client.getBoardMessages()) {
+			ret.add(msg.msg_s);
+		}
+		return ret;
+	}
+
 	public DCPPService() {
 		super("DCPP Service");
+		search_results = new LinkedBlockingQueue<DCMessage>();
 	}
 
 	public class LocalBinder extends Binder {
@@ -412,7 +424,7 @@ public class DCPPService extends IntentService {
 	private final IBinder mBinder = new LocalBinder();
 
 	public IBinder onBind(Intent intent) {
-		Log.d("dcpp_service", "Binding to service");
+		Log.d("andcpp", "Binding to service");
 		return mBinder;
 	}
 
@@ -424,7 +436,7 @@ public class DCPPService extends IntentService {
 				String nick = data.getString("nick");
 				String ip = data.getString("ip");
 				prefs = new DCPreferences(nick, 3000L * 1024 * 1024, ip);
-				DCUser myuser = new DCUser();
+				myuser = new DCUser();
 				myuser.nick = nick;
 				client = new DCClient();
 				try {
@@ -444,7 +456,7 @@ public class DCPPService extends IntentService {
 				status = DCClientStatus.CONNECTED;
 				is_connected = true;
 				Intent notification_intent = new Intent(this,
-						ConnectActivity.class);
+						MainActivity.class);
 				PendingIntent pendingIntent = PendingIntent.getActivity(this,
 						0, notification_intent, 0);
 				NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(
@@ -469,13 +481,13 @@ public class DCPPService extends IntentService {
 					e.printStackTrace();
 				}
 			} else {
-				Log.e("dcpp_service",
-						"Received intent without nick or ip parameters");
+				Log.e("andcpp",
+						"dcpp_service Received intent without nick or ip parameters");
 				status = DCClientStatus.INVALIDIP;
 			}
 		} else {
-			Log.e("dcpp_service",
-					"Attempted to connect while already connected");
+			Log.e("andcpp",
+					"dcpp_service Attempted to connect while already connected");
 		}
 	}
 
@@ -490,5 +502,12 @@ public class DCPPService extends IntentService {
 			// TODO Shutdown the DClient.
 			normal_worker.interrupt();
 		}
+	}
+
+	public void make_search(String searchtext) {
+		search_results.clear();
+		search_results = new LinkedBlockingQueue<DCMessage>(); //reset search results
+		Log.d("andcpp", "dcpp_service Making search request " + searchtext);
+		client.searchForFile(searchtext, myuser, 1); // 1 is for files
 	}
 }

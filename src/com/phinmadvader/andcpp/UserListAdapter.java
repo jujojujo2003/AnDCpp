@@ -77,7 +77,7 @@ public class UserListAdapter extends ArrayAdapter<DCUserComparable> {
 			
 
 			String constraint = con.toString().toLowerCase();
-			Log.i("CONSTRAINT", Integer.toString(nickList.size()));
+			Log.i("andcpp","CONSTRAINT: " +  Integer.toString(nickList.size()));
 			if (constraint != null && constraint.length() > 0) {
 				ArrayList<DCUserComparable> filteredDCUsers = new ArrayList<DCUserComparable>();
 				ArrayList<DCUserComparable> allDCUsers = new ArrayList<DCUserComparable>();
