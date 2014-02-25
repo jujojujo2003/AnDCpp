@@ -1,8 +1,6 @@
 package com.phinmadvader.andcpp;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import android.app.ActionBar;
 import android.content.ComponentName;
@@ -15,12 +13,10 @@ import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
-import android.text.method.HideReturnsTransformationMethod;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
@@ -314,4 +310,17 @@ public class MainActivity extends FragmentActivity implements
 		});
 		fileDownloadThread.start();
 	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) 
+	{  
+	    if (keyCode == KeyEvent.KEYCODE_BACK)
+	    {
+	    	int currentItem = view_pager.getCurrentItem();
+	    	if(currentItem > 0)
+	    		view_pager.setCurrentItem(currentItem - 1);
+	    }
+	    return false; 
+	}
+	
 }
