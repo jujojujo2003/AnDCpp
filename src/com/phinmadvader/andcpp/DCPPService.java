@@ -13,12 +13,14 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import com.phinvader.libjdcpp.DCClient;
 import com.phinvader.libjdcpp.DCCommand;
@@ -84,7 +86,7 @@ public class DCPPService extends IntentService {
 			this.target_nick = target_nick;
 			this.local_file = local_file;
 			this.remote_file = remote_file;
-			String[] file_name_parts = remote_file.split("/");
+			String[] file_name_parts = remote_file.split("[\\\\/]");
 			file_name = file_name_parts[file_name_parts.length - 1];
 
 			downloadID++;
@@ -208,9 +210,25 @@ public class DCPPService extends IntentService {
 
 						while (true) {
 							if (work.download_status.status == DCConstants.DownloadStatus.COMPLETED) {
+								
+
+				                Intent intent = new Intent();
+				                intent.setAction(android.content.Intent.ACTION_VIEW);
+				                File file = new File(work.local_file);
+				              
+				                MimeTypeMap mime = MimeTypeMap.getSingleton();
+				                String ext=file.getName().substring(file.getName().indexOf(".")+1);
+				                String type = mime.getMimeTypeFromExtension(ext);
+				             
+				                intent.setDataAndType(Uri.fromFile(file),type);
+				              
+				                PendingIntent pIntent = PendingIntent.getActivity(getBaseContext(), 0, intent, 0);
+								
+								
 								work.mBuilder2.setProgress(0, 0, false);
 								work.mBuilder2.setContentText(
 										"Download Complete")
+										.setContentIntent(pIntent)
 										.setTicker(
 												"Download Complete : "
 														+ work.file_name);
