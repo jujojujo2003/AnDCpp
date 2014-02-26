@@ -3,7 +3,7 @@ package com.phinmadvader.andcpp;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.phinvader.libjdcpp.DCFileList;
@@ -40,7 +39,6 @@ public class DirectoryViewFragment extends Fragment {
         depth = getArguments() != null ? getArguments().getInt(NUM_ARG_KEY) : 0;
     }
 
-	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -62,26 +60,25 @@ public class DirectoryViewFragment extends Fragment {
 							filelist_fragment.openDirectory(depth,
 									fileList.get(i));
 						} else {
+
+							
 							// Download File
 							String path = "";
 							for (int j = 1; j <= depth; j++)
 								path += filelist_fragment.filelist_stack.get(j).name + "\\";
 							path +=  fileList.get(i).name;
 							Log.e("andcpp", path);
-							mainActivity.mService.download_file(
-									mainActivity.chosenNick,
-									Constants.dcDirectory + "/"
-											+ fileList.get(i).name, path,
-									fileList.get(i).size);
 
-							mainActivity.runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									Toast.makeText(mainActivity,
-											"Download Started",
-											Toast.LENGTH_LONG).show();
-								}
-							});
+							
+							
+							ConfirmDownloadFragment cdf = new ConfirmDownloadFragment();
+							cdf.mainActivity = mainActivity;
+							cdf.localFilePath = Constants.dcDirectory + "/"
+									+ fileList.get(i).name;
+							cdf.remotePath = path;
+							cdf.fileSize = fileList.get(i).size;
+							cdf.fileName = fileList.get(i).name;
+							cdf.show(getFragmentManager(), "ConfirmDownload");
 						}
 					}
 				});

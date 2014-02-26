@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
@@ -318,9 +319,11 @@ public class MainActivity extends FragmentActivity implements
 	    {
 	    	int currentItem = view_pager.getCurrentItem();
 	    	if(currentItem > 0)
-	    		view_pager.setCurrentItem(currentItem - 1);
+	    		 view_pager.setCurrentItem(currentItem - 1);
 	    }
 	    return false; 
 	}
+	
+
 	
 }

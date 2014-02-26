@@ -47,6 +47,10 @@ public class UserListFragment extends Fragment {
 	 * }
 	 */
 
+
+	
+	
+	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
@@ -113,6 +117,7 @@ public class UserListFragment extends Fragment {
 		nlist.add(new DCUserComparable(nick_msg.myinfo));
 		addNick(nlist);
 	}
+	
 
 	public void addNick(final List<DCUserComparable> nicks) {
 		mainActivity.runOnUiThread(new Runnable() {
@@ -176,6 +181,13 @@ public class UserListFragment extends Fragment {
 		});
 	}
 
+	
+	public void sortNickList(int sortBy){
+		Collections.sort(nickList, new DCUserComparable.ShareSizeCompare());
+	}
+
+	
+	
 	public void refreshViewFromData() {
 		mainActivity.runOnUiThread(new Runnable() {
 			@Override

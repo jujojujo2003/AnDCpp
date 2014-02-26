@@ -57,18 +57,22 @@ public class SearchResultsFragment extends Fragment {
 						String filename = file_parts[file_parts.length - 1];
 
 						Log.e("andcpp", path);
-						mainActivity.mService.download_file(nick,
-								Constants.dcDirectory + "/" + filename, path,
-								file_size);
-
-						mainActivity.runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								Toast.makeText(mainActivity,
-										"Download Started", Toast.LENGTH_LONG)
-										.show();
-							}
-						});
+						
+						// Download File
+						
+						
+						ConfirmDownloadFragment cdf = new ConfirmDownloadFragment();
+						cdf.mainActivity = mainActivity;
+						cdf.localFilePath = Constants.dcDirectory + "/"
+								+ filename;
+						cdf.remotePath = path;
+						cdf.fileSize = file_size;
+						cdf.nick = nick;
+						cdf.fileName = filename;
+						
+						cdf.show(getFragmentManager(), "ConfirmDownload");
+						
+				
 					}
 				});
 		this.filesAdapter = myFileAdapter;

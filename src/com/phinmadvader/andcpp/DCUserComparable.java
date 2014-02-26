@@ -1,5 +1,7 @@
 package com.phinmadvader.andcpp;
 
+import java.util.Comparator;
+
 import android.util.Log;
 
 import com.phinvader.libjdcpp.DCUser;
@@ -22,6 +24,16 @@ public class DCUserComparable extends DCUser implements Comparable<DCUser>{
 	public DCUserComparable(String nick){
 		// DUmmy Constructor, only to be used for delete
 		this.nick = nick;
+		
+	}
+	
+	
+	public static class ShareSizeCompare implements Comparator<DCUserComparable>{
+
+		@Override
+		public int compare(DCUserComparable arg0, DCUserComparable arg1) {
+			return (int)arg0.share_size - (int)arg1.share_size;
+		}
 		
 	}
 
