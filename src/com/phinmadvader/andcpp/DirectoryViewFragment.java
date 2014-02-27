@@ -19,7 +19,7 @@ import com.phinvader.libjdcpp.DCFileList;
 
 public class DirectoryViewFragment extends Fragment {
 	private MainActivity mainActivity;
-	private FileListFragment filelist_fragment; // has all depth info
+	private FileListManager filelist_manager; // has all depth info
 	public boolean is_ready = false;
 
 	private ListView fileListView;
@@ -43,7 +43,7 @@ public class DirectoryViewFragment extends Fragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		mainActivity = (MainActivity) getActivity();
-		filelist_fragment = mainActivity.get_filelist_fragment();
+		filelist_manager = mainActivity.get_filelist_manager();
 
 		curFiles = new ArrayList<DCFileList>();
 		filesAdapter = new FileListAdapter(mainActivity,
@@ -57,7 +57,7 @@ public class DirectoryViewFragment extends Fragment {
 					public void onItemClick(AdapterView<?> adapterView,
 							View view, int i, long l) {
 						if (fileList.get(i).isDirectory()) {
-							filelist_fragment.openDirectory(depth,
+							filelist_manager.openDirectory(depth,
 									fileList.get(i));
 						} else {
 
@@ -65,7 +65,7 @@ public class DirectoryViewFragment extends Fragment {
 							// Download File
 							String path = "";
 							for (int j = 1; j <= depth; j++)
-								path += filelist_fragment.filelist_stack.get(j).name + "\\";
+								path += filelist_manager.filelist_stack.get(j).name + "\\";
 							path +=  fileList.get(i).name;
 							Log.e("andcpp", path);
 
@@ -84,7 +84,7 @@ public class DirectoryViewFragment extends Fragment {
 				});
 
 		curFiles.clear();
-		fileList = filelist_fragment.filelist_stack.get(depth).children;
+		fileList = filelist_manager.filelist_stack.get(depth).children;
 		for (int i = 0; i < fileList.size(); i++) {
 			curFiles.add(fileList.get(i));
 		}

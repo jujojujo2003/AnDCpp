@@ -36,12 +36,16 @@ public class MainActivity extends FragmentActivity implements
 	private SearchView searchview;
 	private MenuItem searchmenuitem;
 
-	private TabPagerAdapter tab_page_adapter;
+	/**
+	 * TODO: make tab_page_adapter private? or leave as it is...
+	 * tab_page_adapters is public so that filelistmanager can update its pages
+	 */
+	public TabPagerAdapter tab_page_adapter;
 	private ViewPager view_pager;
 	private LoginFragment login_fragment;
 	private MessageBoardFragment messageboard_fragment;
 	private UserListFragment userlist_fragment;
-	private FileListFragment filelist_fragment;
+	private FileListManager filelist_manager;
 	private SearchResultsFragment searchresult_fragment;
 
 	// FileList stack variables
@@ -50,8 +54,8 @@ public class MainActivity extends FragmentActivity implements
 	public DCFileList rootfileList;
 	public String chosenNick;
 
-	public FileListFragment get_filelist_fragment() {
-		return filelist_fragment;
+	public FileListManager get_filelist_manager() {
+		return filelist_manager;
 	}
 
 	private ServiceConnection mConnection = new ServiceConnection() {
@@ -118,14 +122,16 @@ public class MainActivity extends FragmentActivity implements
 		// saveinstance doesn't seem to work on loginframgnet, resulting in
 		// loginfragment being reset to a state without a disconnect button
 		// which is problematic
+
+		filelist_manager = new FileListManager(this);
 		tab_page_adapter = new TabPagerAdapter(getSupportFragmentManager(),
-				getActionBar(), view_pager); // attaches and manages
-												// view_pager
+				getActionBar(), view_pager, filelist_manager); // attaches and
+																// manages
+																// view_pager
 
 		login_fragment = new LoginFragment();
 		messageboard_fragment = new MessageBoardFragment();
 		userlist_fragment = new UserListFragment();
-		filelist_fragment = new FileListFragment();
 		searchresult_fragment = new SearchResultsFragment();
 		tab_page_adapter.add_tab(TabPagerAdapter.TAB_LOGININFO,
 				(Fragment) login_fragment, "Login Info");
@@ -154,7 +160,7 @@ public class MainActivity extends FragmentActivity implements
 		login_fragment = null;
 		messageboard_fragment = null;
 		userlist_fragment = null;
-		filelist_fragment = null;
+		filelist_manager = null;
 		searchresult_fragment = null;
 		chosenNick = null;
 		rootfileList = null;
@@ -200,7 +206,7 @@ public class MainActivity extends FragmentActivity implements
 	public boolean onQueryTextSubmit(String query) {
 		searchview.setQuery("", false);
 		searchview.clearFocus();
-		
+
 		searchresult_fragment.clear_search_results();
 		tab_page_adapter.add_tab(TabPagerAdapter.TAB_SEARCHLIST,
 				searchresult_fragment, "Search Results");
@@ -295,11 +301,12 @@ public class MainActivity extends FragmentActivity implements
 								Toast.LENGTH_LONG).show();
 						MainActivity.this.rootfileList = fileList;
 						MainActivity.this.chosenNick = nick;
-						filelist_fragment.refreshToNewFileList();
+						filelist_manager.refreshToNewFileList();
+						tab_page_adapter.notifyDataSetChanged();
 						Log.d("andcpp", "First file name : "
 								+ fileList.children.get(0).name);
 						tab_page_adapter.add_tab(TabPagerAdapter.TAB_FILELIST,
-								filelist_fragment, nick + "'s FileList");
+								null, nick + "'s FileList");
 						// now launch tab
 						// fileList is ur file lsit
 						// Make a FileListView and append
@@ -323,7 +330,7 @@ public class MainActivity extends FragmentActivity implements
 	    }
 	    return false; 
 	}
-	
+
 
 	
 }
