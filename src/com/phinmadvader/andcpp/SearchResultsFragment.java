@@ -91,10 +91,13 @@ public class SearchResultsFragment extends Fragment {
 	 */
 	public void add_search_result(DCMessage sr) {
 		String[] file_parts = sr.file_path.split("\\\\");
+		
 		String name = file_parts[file_parts.length - 1];
 		name = sr.hisinfo.nick + ": " + name;
+
 		DCFileList entry = new DCFileList(name, sr.file_size);
 
+		
 		curFiles.add(entry);
 		searchResults.add(sr);
 		if (is_ready)

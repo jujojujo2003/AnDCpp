@@ -35,14 +35,11 @@ public class ConfirmDownloadFragment extends DialogFragment {
 	           .setPositiveButton("Download", new DialogInterface.OnClickListener() {
 	               @Override
 	               public void onClick(DialogInterface dialog, int id) {
-	            	   	//SOmething :D
-	            	   Log.i("MACT",mainActivity.chosenNick+"++"+remotePath);
-	            	   
 	            	   mainActivity.mService.download_file(
 								nick,
 								localFilePath, remotePath ,
 								fileSize);
-/*
+
 						mainActivity.runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
@@ -51,7 +48,7 @@ public class ConfirmDownloadFragment extends DialogFragment {
 										Toast.LENGTH_LONG).show();
 							}
 						});
-	         */   	   
+ 	   
 	               }
 	           })
 	           .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
