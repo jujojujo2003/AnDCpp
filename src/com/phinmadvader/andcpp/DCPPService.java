@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -21,6 +22,7 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
+import android.widget.Toast;
 
 import com.phinvader.libjdcpp.DCClient;
 import com.phinvader.libjdcpp.DCCommand;
@@ -41,6 +43,8 @@ public class DCPPService extends IntentService {
 
 	public static String[] FileUnits = { "Bytes", "KB", "MB", "GB", "TB" };
 
+	private ProgressDialog myProgressDialog;
+	
 	public static class FileSize {
 		public double fileSize;
 		public String unit;
@@ -475,11 +479,20 @@ public class DCPPService extends IntentService {
 					client.connect(ip, 411, prefs);
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
+					exceptionCaught();
+					return;
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					exceptionCaught();
+					return;
 				} catch (IOException e) {
 					e.printStackTrace();
-				}
+					exceptionCaught();
+					return;
+				}		
+				
+				mySendBroadcast(false, true);
+				
 				client.bootstrap(myuser);
 				client.setCustomUserChangeHandler(new MyUserHandler());
 				client.setCustomBoardMessageHandler(new MyBoardMessageHandler());
@@ -523,6 +536,22 @@ public class DCPPService extends IntentService {
 		}
 	}
 
+	private void exceptionCaught() {
+		Log.d("andcpp", "exceptionCaught!");
+		Toast.makeText(getApplicationContext(), "Unable to connect", Toast.LENGTH_LONG)
+			.show();
+		mySendBroadcast(true, true);
+	}
+	
+	private void mySendBroadcast(Boolean stopServiceFlag, Boolean stopProgressDialogFlag){
+		Intent broadcastIntent = new Intent();
+		broadcastIntent.setAction("ACTION_DO_SOMETHING");
+		broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);		
+		broadcastIntent.putExtra("stopServiceFlag", stopServiceFlag);
+		broadcastIntent.putExtra("stopProgressDialogFlag", stopProgressDialogFlag);
+		sendBroadcast(broadcastIntent);
+	}
+
 	public void shutdown() {
 		if (is_connected) {
 			is_connected = false;
@@ -544,7 +573,13 @@ public class DCPPService extends IntentService {
 	}
 	
 	
-	
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		// Let's shutdown connection(if any) if app get's unexpectedly killed.
+		shutdown();
+		Log.d("andcpp", "destroyed!");
+	}
 
 	
 	
