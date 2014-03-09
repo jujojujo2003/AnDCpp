@@ -11,6 +11,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -21,6 +22,7 @@ import android.os.IBinder;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
+import android.widget.Toast;
 
 import com.phinvader.libjdcpp.DCClient;
 import com.phinvader.libjdcpp.DCCommand;
@@ -41,6 +43,8 @@ public class DCPPService extends IntentService {
 
 	public static String[] FileUnits = { "Bytes", "KB", "MB", "GB", "TB" };
 
+	private ProgressDialog myProgressDialog;
+	
 	public static class FileSize {
 		public double fileSize;
 		public String unit;
@@ -475,11 +479,20 @@ public class DCPPService extends IntentService {
 					client.connect(ip, 411, prefs);
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
+					exceptionCaught();
 				} catch (InterruptedException e) {
 					e.printStackTrace();
+					exceptionCaught();
 				} catch (IOException e) {
 					e.printStackTrace();
-				}
+					exceptionCaught();
+				}		
+				
+				Intent stopProgressDialog = new Intent();
+				stopProgressDialog.setAction("ACTION_STOP_PROGRESS_DIALOG");
+				stopProgressDialog.addCategory(Intent.CATEGORY_DEFAULT);
+				sendBroadcast(stopProgressDialog);
+				
 				client.bootstrap(myuser);
 				client.setCustomUserChangeHandler(new MyUserHandler());
 				client.setCustomBoardMessageHandler(new MyBoardMessageHandler());
@@ -521,6 +534,17 @@ public class DCPPService extends IntentService {
 			Log.e("andcpp",
 					"dcpp_service Attempted to connect while already connected");
 		}
+	}
+
+	private void exceptionCaught() {
+		Log.d("andcpp", "exceptionCaught!");
+		Toast.makeText(getApplicationContext(), "Unable to connect", Toast.LENGTH_LONG)
+			.show();
+		Intent stopService = new Intent();
+		stopService.setAction("ACTION_STOP_SERVICE");
+		stopService.addCategory(Intent.CATEGORY_DEFAULT);
+		stopService.putExtra("stopService", true);
+		sendBroadcast(stopService);
 	}
 
 	public void shutdown() {

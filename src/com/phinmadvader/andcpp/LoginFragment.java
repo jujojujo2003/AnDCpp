@@ -152,14 +152,9 @@ public class LoginFragment extends Fragment {
 	        return cm.getActiveNetworkInfo();
 	    }
 	    public static boolean isConnected(Context context){
-	    	Log.i("andcpp", "isConntectd?");
+	    	Log.d("andcpp", "isConntectd?");
 	        NetworkInfo info = Connectivity.getNetworkInfo(context);
 	        return (info != null && info.isConnected());
-	    }
-	    public static boolean isConnectedWifi(Context context){
-	    	Log.i("andcpp", "isConnectedWiFi");
-	        NetworkInfo info = Connectivity.getNetworkInfo(context);
-	        return (info != null && info.isConnected() && info.getType() == ConnectivityManager.TYPE_WIFI);
 	    }
 	}
 }
