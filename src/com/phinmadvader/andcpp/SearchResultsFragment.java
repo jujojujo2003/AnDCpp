@@ -47,6 +47,8 @@ public class SearchResultsFragment extends Fragment {
 					@Override
 					public void onItemClick(AdapterView<?> adapterView,
 							View view, int i, long l) {
+						
+						
 						// Download File
 						DCMessage selected_search_result = searchResults.get(i);
 						String path = selected_search_result.file_path;
@@ -63,6 +65,7 @@ public class SearchResultsFragment extends Fragment {
 						
 						ConfirmDownloadFragment cdf = new ConfirmDownloadFragment();
 						cdf.mainActivity = mainActivity;
+						cdf.nick = nick;
 						cdf.localFilePath = Constants.dcDirectory + "/"
 								+ filename;
 						cdf.remotePath = path;

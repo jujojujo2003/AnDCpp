@@ -115,6 +115,7 @@ public class DCPPService extends IntentService {
 			// initialize_download_tracking();
 			myrc = new DCClient.PassiveDownloadConnection(his_user, my_user,
 					prefs, local_file, remote_file, client);
+
 		}
 
 		public void start_download() throws InterruptedException {
@@ -273,6 +274,19 @@ public class DCPPService extends IntentService {
 							Log.e("andcpp",
 									"Download " + work.getFileName()
 											+ " Failed!.");
+							
+							
+
+							work.mBuilder2.setProgress(0, 0, false);
+							work.mBuilder2.setContentText(
+									"No slot available on : " + work.target_nick)
+									.setTicker(
+											"Slot not available on: "
+													+ work.target_nick);
+
+							mNotifyManager2.notify(work.currentID,
+									work.mBuilder2.build());
+							
 
 						}
 					}
@@ -528,4 +542,12 @@ public class DCPPService extends IntentService {
 		Log.d("andcpp", "dcpp_service Making search request " + searchtext);
 		client.searchForFile(searchtext, myuser, 1); // 1 is for files
 	}
+	
+	
+	
+
+	
+	
+	
+	
 }

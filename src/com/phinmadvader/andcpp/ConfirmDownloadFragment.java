@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
@@ -35,12 +36,13 @@ public class ConfirmDownloadFragment extends DialogFragment {
 	               @Override
 	               public void onClick(DialogInterface dialog, int id) {
 	            	   	//SOmething :D
+	            	   Log.i("MACT",mainActivity.chosenNick+"++"+remotePath);
 	            	   
 	            	   mainActivity.mService.download_file(
-								mainActivity.chosenNick,
+								nick,
 								localFilePath, remotePath ,
 								fileSize);
-
+/*
 						mainActivity.runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
@@ -49,7 +51,7 @@ public class ConfirmDownloadFragment extends DialogFragment {
 										Toast.LENGTH_LONG).show();
 							}
 						});
-	            	   
+	         */   	   
 	               }
 	           })
 	           .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
