@@ -131,8 +131,8 @@ public class LoginFragment extends Fragment {
 			return;
 		}
 		//Check valid internet connection.
-		if(!Connectivity.isConnectedWifi(getActivity())){
-			Toast.makeText(getActivity(), "Please connect to a WIFI netork!", Toast.LENGTH_LONG)
+		if(!Connectivity.isConnected(getActivity())){
+			Toast.makeText(getActivity(), "Please connect to the internet!", Toast.LENGTH_LONG)
 				.show();
 			return;
 		}
