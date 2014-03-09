@@ -2,9 +2,13 @@ package com.phinmadvader.andcpp;
 
 import org.apache.http.conn.util.InetAddressUtils;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,11 +45,15 @@ public class LoginFragment extends Fragment {
 		downloadLocation.setText(Constants.dcDirectory);
 		connectButton = (Button) rootView.findViewById(R.id.button);
 		connectButton.setText(ConnectString);
+		
+		
+		
 		connectButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				if (!is_connected)
+				if (!is_connected){
 					connect();
+				}
 				else
 					disconnect();
 			}
@@ -122,7 +130,13 @@ public class LoginFragment extends Fragment {
 					.show();
 			return;
 		}
-
+		//Check valid internet connection.
+		if(!Connectivity.isConnectedWifi(getActivity())){
+			Toast.makeText(getActivity(), "Please connect to a WIFI netork!", Toast.LENGTH_LONG)
+				.show();
+			return;
+		}
+		
 		// Store in preference
 		SharedPreferences.Editor editor = mainActivity.getprefs().edit();
 		editor.putString(Constants.SETTINGS_NICK_KEY, nick);
@@ -132,4 +146,22 @@ public class LoginFragment extends Fragment {
 		// Connect
 		mainActivity.startBackgroundService(nick, ip);
 	}
+	public static class Connectivity {
+	    public static NetworkInfo getNetworkInfo(Context context){
+	        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+	        return cm.getActiveNetworkInfo();
+	    }
+	    public static boolean isConnected(Context context){
+	    	Log.i("andcpp", "isConntectd?");
+	        NetworkInfo info = Connectivity.getNetworkInfo(context);
+	        return (info != null && info.isConnected());
+	    }
+	    public static boolean isConnectedWifi(Context context){
+	    	Log.i("andcpp", "isConnectedWiFi");
+	        NetworkInfo info = Connectivity.getNetworkInfo(context);
+	        return (info != null && info.isConnected() && info.getType() == ConnectivityManager.TYPE_WIFI);
+	    }
+	}
 }
+
+
