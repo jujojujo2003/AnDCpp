@@ -468,26 +468,34 @@ public class DCPPService extends IntentService {
 	protected void onHandleIntent(Intent intent) {
 		if (!is_connected) {
 			Bundle data = intent.getExtras();
-			if (data.containsKey("nick") && data.containsKey("ip")) {
+			if (data.containsKey("nick") && data.containsKey("ip") && data.containsKey("port")) {
 				String nick = data.getString("nick");
 				String ip = data.getString("ip");
-				prefs = new DCPreferences(nick, 3000L * 1024 * 1024, ip);
+				int port = 411;
+				try{
+					port = Integer.parseInt(data.getString("port"));
+				}
+				catch(NumberFormatException e){
+					exceptionCaught("Invalid Port number");
+					return;
+				}
+				prefs = new DCPreferences(nick, 17000L * 1024 * 1024, ip);
 				myuser = new DCUser();
 				myuser.nick = nick;
 				client = new DCClient();
 				try {
-					client.connect(ip, 411, prefs);
+					client.connect(ip, port, prefs);
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
-					exceptionCaught();
+					exceptionCaught("Unknown Host");
 					return;
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-					exceptionCaught();
+					exceptionCaught("interupted");
 					return;
 				} catch (IOException e) {
 					e.printStackTrace();
-					exceptionCaught();
+					exceptionCaught("IOException");
 					return;
 				}		
 				
@@ -536,9 +544,9 @@ public class DCPPService extends IntentService {
 		}
 	}
 
-	private void exceptionCaught() {
-		Log.d("andcpp", "exceptionCaught!");
-		Toast.makeText(getApplicationContext(), "Unable to connect", Toast.LENGTH_LONG)
+	private void exceptionCaught(String message) {
+		Log.d("andcpp", "exceptionCaught! " + message );
+		Toast.makeText(getApplicationContext(), "Unable to connect : "+message, Toast.LENGTH_LONG)
 			.show();
 		mySendBroadcast(true, true);
 	}
