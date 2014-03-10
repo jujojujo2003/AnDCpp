@@ -41,7 +41,7 @@ public class MainActivity extends FragmentActivity implements
 	
 	private Intent serviceIntent;
 	private stopServiceBR stopServiceBroadcastReceiver;
-	private stopProgressDialog stopProgressDialogueBroadcast;
+	private stopProgressDialogBR stopProgressDialogueBroadcast;
 	private ProgressDialog myProgressDialog;
 	/**
 	 * TODO: make tab_page_adapter private? or leave as it is...
@@ -240,7 +240,7 @@ public class MainActivity extends FragmentActivity implements
 		intFil.addCategory(Intent.CATEGORY_DEFAULT);
 		registerReceiver(stopServiceBroadcastReceiver, intFil);
 		
-		stopProgressDialogueBroadcast = new stopProgressDialog();
+		stopProgressDialogueBroadcast = new stopProgressDialogBR();
 		IntentFilter intFil1 = new IntentFilter("ACTION_STOP_PROGRESS_DIALOG");
 		intFil1.addCategory(Intent.CATEGORY_DEFAULT);
 		registerReceiver(stopProgressDialogueBroadcast, intFil1);
@@ -367,7 +367,7 @@ public class MainActivity extends FragmentActivity implements
 		}	
 	}
 	
-	public class stopProgressDialog extends BroadcastReceiver{
+	public class stopProgressDialogBR extends BroadcastReceiver{
 
 		@Override
 		public void onReceive(Context context, Intent intent) {

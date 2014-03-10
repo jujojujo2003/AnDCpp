@@ -480,18 +480,18 @@ public class DCPPService extends IntentService {
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
 					exceptionCaught();
+					return;
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 					exceptionCaught();
+					return;
 				} catch (IOException e) {
 					e.printStackTrace();
 					exceptionCaught();
+					return;
 				}		
 				
-				Intent stopProgressDialog = new Intent();
-				stopProgressDialog.setAction("ACTION_STOP_PROGRESS_DIALOG");
-				stopProgressDialog.addCategory(Intent.CATEGORY_DEFAULT);
-				sendBroadcast(stopProgressDialog);
+				sendStopProgressDialogBroadcast();
 				
 				client.bootstrap(myuser);
 				client.setCustomUserChangeHandler(new MyUserHandler());
@@ -545,6 +545,16 @@ public class DCPPService extends IntentService {
 		stopService.addCategory(Intent.CATEGORY_DEFAULT);
 		stopService.putExtra("stopService", true);
 		sendBroadcast(stopService);
+		
+		sendStopProgressDialogBroadcast();
+	}
+
+	private void sendStopProgressDialogBroadcast() {
+		// TODO Auto-generated method stub
+		Intent stopProgressDialog = new Intent();
+		stopProgressDialog.setAction("ACTION_STOP_PROGRESS_DIALOG");
+		stopProgressDialog.addCategory(Intent.CATEGORY_DEFAULT);
+		sendBroadcast(stopProgressDialog);		
 	}
 
 	public void shutdown() {
@@ -568,7 +578,13 @@ public class DCPPService extends IntentService {
 	}
 	
 	
-	
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		// Let's shutdown connection(if any) if app get's unexpectedly killed.
+		shutdown();
+		Log.d("andcpp", "destroyed!");
+	}
 
 	
 	
