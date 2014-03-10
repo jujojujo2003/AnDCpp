@@ -40,8 +40,7 @@ public class MainActivity extends FragmentActivity implements
 	private MenuItem searchmenuitem;
 	
 	private Intent serviceIntent;
-	private stopServiceBR stopServiceBroadcastReceiver;
-	private stopProgressDialogBR stopProgressDialogueBroadcast;
+	private myBroadcastReceiver myBR;
 	private ProgressDialog myProgressDialog;
 	/**
 	 * TODO: make tab_page_adapter private? or leave as it is...
@@ -235,15 +234,10 @@ public class MainActivity extends FragmentActivity implements
 					Toast.LENGTH_LONG).show();
 		}
 		
-		stopServiceBroadcastReceiver = new stopServiceBR();
-		IntentFilter intFil = new IntentFilter("ACTION_STOP_SERVICE");
+		myBR = new myBroadcastReceiver();
+		IntentFilter intFil = new IntentFilter("ACTION_DO_SOMETHING");
 		intFil.addCategory(Intent.CATEGORY_DEFAULT);
-		registerReceiver(stopServiceBroadcastReceiver, intFil);
-		
-		stopProgressDialogueBroadcast = new stopProgressDialogBR();
-		IntentFilter intFil1 = new IntentFilter("ACTION_STOP_PROGRESS_DIALOG");
-		intFil1.addCategory(Intent.CATEGORY_DEFAULT);
-		registerReceiver(stopProgressDialogueBroadcast, intFil1);
+		registerReceiver(myBR, intFil);
 		
 		myProgressDialog = new ProgressDialog(MainActivity.this);
 		myProgressDialog.setMessage("Connecting...");
@@ -354,28 +348,19 @@ public class MainActivity extends FragmentActivity implements
 	    return false; 
 	}
 
-	public class stopServiceBR extends BroadcastReceiver{
+	public class myBroadcastReceiver extends BroadcastReceiver{
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			// TODO Auto-generated method stub
-			Log.d("andcpp", "StopServiceBroadcastReceived");
+			Log.d("andcpp", "Broadcast Received");
 			Bundle inBun = intent.getExtras();
-			if (inBun != null)
-				if (inBun.getBoolean("stopService"))
-					stopService(serviceIntent);
+			if (inBun.getBoolean("stopServiceFlag", false))
+				stopService(serviceIntent);
+			if (inBun.getBoolean("stopProgressDialogFlag"))
+				if(myProgressDialog.isShowing())
+					myProgressDialog.dismiss();
 		}	
-	}
-	
-	public class stopProgressDialogBR extends BroadcastReceiver{
-
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			// TODO Auto-generated method stub
-			Log.d("andcpp", "StopProgressDialogBroadcastReceived");
-			if(myProgressDialog.isShowing())
-				myProgressDialog.dismiss();
-		}
 	}
 	
 }

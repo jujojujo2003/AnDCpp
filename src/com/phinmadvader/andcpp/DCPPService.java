@@ -491,7 +491,7 @@ public class DCPPService extends IntentService {
 					return;
 				}		
 				
-				sendStopProgressDialogBroadcast();
+				mySendBroadcast(false, true);
 				
 				client.bootstrap(myuser);
 				client.setCustomUserChangeHandler(new MyUserHandler());
@@ -540,21 +540,16 @@ public class DCPPService extends IntentService {
 		Log.d("andcpp", "exceptionCaught!");
 		Toast.makeText(getApplicationContext(), "Unable to connect", Toast.LENGTH_LONG)
 			.show();
-		Intent stopService = new Intent();
-		stopService.setAction("ACTION_STOP_SERVICE");
-		stopService.addCategory(Intent.CATEGORY_DEFAULT);
-		stopService.putExtra("stopService", true);
-		sendBroadcast(stopService);
-		
-		sendStopProgressDialogBroadcast();
+		mySendBroadcast(true, true);
 	}
-
-	private void sendStopProgressDialogBroadcast() {
-		// TODO Auto-generated method stub
-		Intent stopProgressDialog = new Intent();
-		stopProgressDialog.setAction("ACTION_STOP_PROGRESS_DIALOG");
-		stopProgressDialog.addCategory(Intent.CATEGORY_DEFAULT);
-		sendBroadcast(stopProgressDialog);		
+	
+	private void mySendBroadcast(Boolean stopServiceFlag, Boolean stopProgressDialogFlag){
+		Intent broadcastIntent = new Intent();
+		broadcastIntent.setAction("ACTION_DO_SOMETHING");
+		broadcastIntent.addCategory(Intent.CATEGORY_DEFAULT);		
+		broadcastIntent.putExtra("stopServiceFlag", stopServiceFlag);
+		broadcastIntent.putExtra("stopProgressDialogFlag", stopProgressDialogFlag);
+		sendBroadcast(broadcastIntent);
 	}
 
 	public void shutdown() {
