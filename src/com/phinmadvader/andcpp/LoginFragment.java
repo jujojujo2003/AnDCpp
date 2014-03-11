@@ -2,9 +2,13 @@ package com.phinmadvader.andcpp;
 
 import org.apache.http.conn.util.InetAddressUtils;
 
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -41,11 +45,15 @@ public class LoginFragment extends Fragment {
 		downloadLocation.setText(Constants.dcDirectory);
 		connectButton = (Button) rootView.findViewById(R.id.button);
 		connectButton.setText(ConnectString);
+		
+		
+		
 		connectButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View view) {
-				if (!is_connected)
+				if (!is_connected){
 					connect();
+				}
 				else
 					disconnect();
 			}
@@ -108,28 +116,56 @@ public class LoginFragment extends Fragment {
 
 	public void connect() {
 		String nick = nickText.getText().toString();
-		String ip = ipText.getText().toString();
+		String ip_original = ipText.getText().toString();
+		String ip = ip_original;
+		String[] ip_port_raw = ip_original.split(":");
+		String port = "411";
+		if(ip_port_raw.length ==2){
+			ip = ip_port_raw[0];
+			port = ip_port_raw[1];
+			
+		}
+		
 
 		// Check Valid IP
-		if (!InetAddressUtils.isIPv4Address(ip)) {
-			Toast.makeText(mainActivity, "Invalid IP Address",
+		if (ip_port_raw.length > 2) {
+			Toast.makeText(mainActivity, "Invalid Address",
 					Toast.LENGTH_LONG).show();
 			return;
 		}
 
-		if (nick.length() == 0) {
+		if (nick.length() == 0 || nick.contains(" ")) {
 			Toast.makeText(mainActivity, "Invalid Nickname", Toast.LENGTH_LONG)
 					.show();
 			return;
 		}
-
+		//Check valid internet connection.
+		if(!Connectivity.isConnected(getActivity())){
+			Toast.makeText(getActivity(), "Please connect to the internet!", Toast.LENGTH_LONG)
+				.show();
+			return;
+		}
+		
 		// Store in preference
 		SharedPreferences.Editor editor = mainActivity.getprefs().edit();
 		editor.putString(Constants.SETTINGS_NICK_KEY, nick);
-		editor.putString(Constants.SETTINGS_IP_KEY, ip);
+		editor.putString(Constants.SETTINGS_IP_KEY, ip_original);
 		editor.commit();
 
 		// Connect
-		mainActivity.startBackgroundService(nick, ip);
+		mainActivity.startBackgroundService(nick, ip, port);
+	}
+	public static class Connectivity {
+	    public static NetworkInfo getNetworkInfo(Context context){
+	        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+	        return cm.getActiveNetworkInfo();
+	    }
+	    public static boolean isConnected(Context context){
+	    	Log.d("andcpp", "isConntectd?");
+	        NetworkInfo info = Connectivity.getNetworkInfo(context);
+	        return (info != null && info.isConnected());
+	    }
 	}
 }
+
+

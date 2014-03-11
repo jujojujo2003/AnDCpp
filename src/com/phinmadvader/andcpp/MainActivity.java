@@ -3,9 +3,12 @@ package com.phinmadvader.andcpp;
 import java.io.File;
 
 import android.app.ActionBar;
+import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -35,7 +38,10 @@ public class MainActivity extends FragmentActivity implements
 	private Poller poller;
 	private SearchView searchview;
 	private MenuItem searchmenuitem;
-
+	
+	private Intent serviceIntent;
+	private myBroadcastReceiver myBR;
+	private ProgressDialog myProgressDialog;
 	/**
 	 * TODO: make tab_page_adapter private? or leave as it is...
 	 * tab_page_adapters is public so that filelistmanager can update its pages
@@ -214,7 +220,7 @@ public class MainActivity extends FragmentActivity implements
 		return false;
 	}
 
-	public void startBackgroundService(String nick, String ip) {
+	public void startBackgroundService(String nick, String ip, String port) {
 		// Check if download folder exists , else create
 		File folder = new File(Constants.dcDirectory);
 		boolean success = true;
@@ -227,11 +233,23 @@ public class MainActivity extends FragmentActivity implements
 			Toast.makeText(this, "Unable to create/access download directory",
 					Toast.LENGTH_LONG).show();
 		}
-
-		Intent serviceIntent = new Intent(this, DCPPService.class);
+		
+		myBR = new myBroadcastReceiver();
+		IntentFilter intFil = new IntentFilter("ACTION_DO_SOMETHING");
+		intFil.addCategory(Intent.CATEGORY_DEFAULT);
+		registerReceiver(myBR, intFil);
+		
+		myProgressDialog = new ProgressDialog(MainActivity.this);
+		myProgressDialog.setMessage("Connecting...");
+		myProgressDialog.setCanceledOnTouchOutside(false);
+		myProgressDialog.show();
+		
+		serviceIntent = new Intent(this, DCPPService.class);
 		serviceIntent.putExtra("nick", nick);
 		serviceIntent.putExtra("ip", ip);
+		serviceIntent.putExtra("port", port);
 		startService(serviceIntent);
+
 	}
 
 	public void stopBackgroundService() {
@@ -331,6 +349,19 @@ public class MainActivity extends FragmentActivity implements
 	    return false; 
 	}
 
+	public class myBroadcastReceiver extends BroadcastReceiver{
 
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			// TODO Auto-generated method stub
+			Log.d("andcpp", "Broadcast Received");
+			Bundle inBun = intent.getExtras();
+			if (inBun.getBoolean("stopServiceFlag", false))
+				stopService(serviceIntent);
+			if (inBun.getBoolean("stopProgressDialogFlag"))
+				if(myProgressDialog.isShowing())
+					myProgressDialog.dismiss();
+		}	
+	}
 	
 }
