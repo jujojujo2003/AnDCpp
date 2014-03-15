@@ -73,6 +73,7 @@ public class DirectoryViewFragment extends Fragment {
 							
 							ConfirmDownloadFragment cdf = new ConfirmDownloadFragment();
 							cdf.mainActivity = mainActivity;
+							cdf.nick = cdf.mainActivity.chosenNick;
 							cdf.localFilePath = Constants.dcDirectory + "/"
 									+ fileList.get(i).name;
 							cdf.remotePath = path;

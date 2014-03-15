@@ -223,7 +223,7 @@ public class MainActivity extends FragmentActivity implements
 		return false;
 	}
 
-	public void startBackgroundService(String nick, String ip) {
+	public void startBackgroundService(String nick, String ip, String port) {
 		// Check if download folder exists , else create
 		File folder = new File(Constants.dcDirectory);
 		boolean success = true;
@@ -250,6 +250,7 @@ public class MainActivity extends FragmentActivity implements
 		serviceIntent = new Intent(this, DCPPService.class);
 		serviceIntent.putExtra("nick", nick);
 		serviceIntent.putExtra("ip", ip);
+		serviceIntent.putExtra("port", port);
 		startService(serviceIntent);
 
 	}

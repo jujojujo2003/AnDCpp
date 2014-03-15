@@ -116,16 +116,25 @@ public class LoginFragment extends Fragment {
 
 	public void connect() {
 		String nick = nickText.getText().toString();
-		String ip = ipText.getText().toString();
+		String ip_original = ipText.getText().toString();
+		String ip = ip_original;
+		String[] ip_port_raw = ip_original.split(":");
+		String port = "411";
+		if(ip_port_raw.length ==2){
+			ip = ip_port_raw[0];
+			port = ip_port_raw[1];
+			
+		}
+		
 
 		// Check Valid IP
-		if (!InetAddressUtils.isIPv4Address(ip)) {
-			Toast.makeText(mainActivity, "Invalid IP Address",
+		if (ip_port_raw.length > 2) {
+			Toast.makeText(mainActivity, "Invalid Address",
 					Toast.LENGTH_LONG).show();
 			return;
 		}
 
-		if (nick.length() == 0) {
+		if (nick.length() == 0 || nick.contains(" ")) {
 			Toast.makeText(mainActivity, "Invalid Nickname", Toast.LENGTH_LONG)
 					.show();
 			return;
@@ -140,11 +149,11 @@ public class LoginFragment extends Fragment {
 		// Store in preference
 		SharedPreferences.Editor editor = mainActivity.getprefs().edit();
 		editor.putString(Constants.SETTINGS_NICK_KEY, nick);
-		editor.putString(Constants.SETTINGS_IP_KEY, ip);
+		editor.putString(Constants.SETTINGS_IP_KEY, ip_original);
 		editor.commit();
 
 		// Connect
-		mainActivity.startBackgroundService(nick, ip);
+		mainActivity.startBackgroundService(nick, ip, port);
 	}
 	public static class Connectivity {
 	    public static NetworkInfo getNetworkInfo(Context context){
