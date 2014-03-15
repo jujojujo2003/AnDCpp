@@ -12,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -20,7 +21,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
 import android.widget.Toast;
@@ -54,6 +54,9 @@ public class MainActivity extends FragmentActivity implements
 	private FileListManager filelist_manager;
 	private SearchResultsFragment searchresult_fragment;
 
+	boolean exitFlag = false;
+	Toast myToast;
+	
 	// FileList stack variables
 	// TODO: This ought to be nested in some filelist management class
 	// (filelistfragment? sth new?) and not strewn around randomly as presently
@@ -345,6 +348,35 @@ public class MainActivity extends FragmentActivity implements
 	    	int currentItem = view_pager.getCurrentItem();
 	    	if(currentItem > 0)
 	    		 view_pager.setCurrentItem(currentItem - 1);
+	    	
+	    	else if(exitFlag){
+	    		// in case the user opens the app again before activity is destroyed, 
+	    		// flag will be false so it will exit when back is pressed once and we don't want that!
+	    		exitFlag = false;
+	    		
+	    		//canceling the toast looks nice!
+	    		if (myToast != null)
+	    			myToast.cancel();
+	    		
+	    		super.onBackPressed();
+	    		return true;
+	    	}
+	    	
+	    	else if(!exitFlag){
+	    		myToast = Toast.makeText(getApplicationContext(), "Please press back again to exit", Toast.LENGTH_SHORT);
+	    		myToast.show();
+	    		exitFlag = true;
+	    		
+	    		new Handler().postDelayed(new Runnable() {
+
+	    	        @Override
+	    	        public void run() {
+	    	            exitFlag=false;                       
+	    	        }
+	    	    }, 2000);
+	    	}
+	    	// Must return true if we handles the event!
+	    	return true;
 	    }
 	    return false; 
 	}
