@@ -5,5 +5,7 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_sort">Sort</string>
-
+	<string-array name="settings_options_list">
+	    <item >Change Downloads Directory</item>
+	</string-array>
 </resources>
