@@ -1,7 +1,5 @@
 package com.phinmadvader.andcpp;
 
-import java.io.File;
-
 import android.app.ActionBar;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
@@ -191,7 +189,24 @@ public class MainActivity extends FragmentActivity implements
 		searchmenuitem.setVisible(false);
 		return true;
 	}
-
+	
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item){
+		switch(item.getItemId()){
+		case R.id.action_settings:
+			Intent settingsIntent = new Intent(this, Settings.class);
+			startActivity(settingsIntent);
+			return true;
+		
+		case R.id.action_search:
+			//don't know what this was supposed to do!
+			return true;
+		default:
+			Log.i("andcpp", "menu item "+item.getItemId()+"click not implemented.");
+			return true;
+	 		}
+	 	}
+	
 	@Override
 	protected void onPause() {
 		poller.stop();
@@ -224,19 +239,6 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	public void startBackgroundService(String nick, String ip, String port) {
-		// Check if download folder exists , else create
-		File folder = new File(Constants.dcDirectory);
-		boolean success = true;
-		if (!folder.exists()) {
-			success = folder.mkdir();
-			Toast.makeText(this, "Created download directory!",
-					Toast.LENGTH_SHORT).show();
-		}
-		if (!success) {
-			Toast.makeText(this, "Unable to create/access download directory",
-					Toast.LENGTH_LONG).show();
-		}
-		
 		myBR = new myBroadcastReceiver();
 		IntentFilter intFil = new IntentFilter("ACTION_DO_SOMETHING");
 		intFil.addCategory(Intent.CATEGORY_DEFAULT);

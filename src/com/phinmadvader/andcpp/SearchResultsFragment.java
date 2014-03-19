@@ -66,8 +66,9 @@ public class SearchResultsFragment extends Fragment {
 						ConfirmDownloadFragment cdf = new ConfirmDownloadFragment();
 						cdf.mainActivity = mainActivity;
 						cdf.nick = nick;
-						cdf.localFilePath = Constants.dcDirectory + "/"
-								+ filename;
+						cdf.localFilePath = 
+						   Settings.getDCDownloadsDirectory(mainActivity)
+						   + "/" + filename;
 						cdf.remotePath = path;
 						cdf.fileSize = file_size;
 						cdf.nick = nick;

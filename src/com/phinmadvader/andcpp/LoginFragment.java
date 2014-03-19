@@ -1,14 +1,11 @@
 package com.phinmadvader.andcpp;
 
-import org.apache.http.conn.util.InetAddressUtils;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,7 +39,7 @@ public class LoginFragment extends Fragment {
 		downloadLocation = (TextView) rootView.findViewById(R.id.textView5);
 		nickText = (EditText) rootView.findViewById(R.id.editText2);
 		ipText = (EditText) rootView.findViewById(R.id.editText);
-		downloadLocation.setText(Constants.dcDirectory);
+		downloadLocation.setText(Settings.getDCDownloadsDirectory(getActivity()));
 		connectButton = (Button) rootView.findViewById(R.id.button);
 		connectButton.setText(ConnectString);
 		

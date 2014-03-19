@@ -3,7 +3,6 @@ package com.phinmadvader.andcpp;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.AlertDialog;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -13,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.phinvader.libjdcpp.DCFileList;
 
@@ -74,7 +72,7 @@ public class DirectoryViewFragment extends Fragment {
 							ConfirmDownloadFragment cdf = new ConfirmDownloadFragment();
 							cdf.mainActivity = mainActivity;
 							cdf.nick = cdf.mainActivity.chosenNick;
-							cdf.localFilePath = Constants.dcDirectory + "/"
+							cdf.localFilePath = Settings.getDCDownloadsDirectory(getActivity()) + "/"
 									+ fileList.get(i).name;
 							cdf.remotePath = path;
 							cdf.fileSize = fileList.get(i).size;
