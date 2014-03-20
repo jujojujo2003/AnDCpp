@@ -41,7 +41,7 @@ public class DCPPService extends IntentService {
 		DISCONNECTED, INVALIDIP, CONNECTED
 	}
 
-	public static String[] FileUnits = { "Bytes", "KB", "MB", "GB", "TB" };
+	public static String[] FileUnits = { "Bytes", "KB", "MB", "GB", "TB", "PB", "EB" };
 
 	private ProgressDialog myProgressDialog;
 	
@@ -51,7 +51,7 @@ public class DCPPService extends IntentService {
 
 		public FileSize(double size) {
 			int i = 0;
-			while (size > 1) {
+			while (size > 1 && i < FileUnits.length) {
 				unit = FileUnits[i];
 				fileSize = size;
 				size /= 1024;
