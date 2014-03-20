@@ -1,5 +1,8 @@
 package com.phinmadvader.andcpp;
 
+import java.util.ArrayList;
+import java.util.Collections;
+
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -21,9 +24,6 @@ import com.phinvader.libjdcpp.DCCommand;
 import com.phinvader.libjdcpp.DCFileList;
 import com.phinvader.libjdcpp.DCMessage;
 import com.phinvader.libjdcpp.DCUser;
-
-import java.util.ArrayList;
-import java.util.Collections;
 
 public class TestActivity extends Activity {
     private Handler mHandler = new Handler();
@@ -171,7 +171,7 @@ public class TestActivity extends Activity {
         dl_f1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mService.download_file("shredder12", Constants.dcDirectory + "file1",
+                mService.download_file("shredder12", Settings.getDCDownloadsDirectory(getApplicationContext()) + "file1",
                         "Operating Systems\\Ubuntu\\lubuntu-12.04-desktop-amd64.iso", 731164672);
             }
         });
@@ -181,7 +181,7 @@ public class TestActivity extends Activity {
         dl_f2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mService.download_file("shredder12", Constants.dcDirectory + "file2",
+                mService.download_file("shredder12", Settings.getDCDownloadsDirectory(getApplicationContext()) + "file2",
                         "Operating Systems\\Ubuntu\\ubuntu-10.04-desktop-amd64.iso", 731453440);
             }
         });

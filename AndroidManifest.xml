@@ -30,6 +30,8 @@
             android:name="com.phinmadvader.andcpp.TestActivity"
             android:label="Test Activity" >
         </activity>
+        <activity 
+            android:name="com.phinmadvader.andcpp.Settings"></activity>
     </application>
 
 </manifest>
