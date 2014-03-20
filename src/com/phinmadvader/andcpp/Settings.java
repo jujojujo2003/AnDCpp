@@ -64,6 +64,7 @@ public class Settings extends Activity{
 		};
 		inputDirectoryTextView	= new EditText(Settings.this);
 		inputDirectoryTextView.setHint("Enter the directory here...");
+		inputDirectoryTextView.setText(getDCDownloadsDirectory(getApplicationContext()));
 		
 		DisplayAlert("Enter new Downloads Directory", 
 				"Current Directory is "+getDCDownloadsDirectory(getApplicationContext()), 
