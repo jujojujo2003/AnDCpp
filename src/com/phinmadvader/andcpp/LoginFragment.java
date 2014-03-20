@@ -163,6 +163,12 @@ public class LoginFragment extends Fragment {
 	        return (info != null && info.isConnected());
 	    }
 	}
+	@Override
+	public void onResume() {
+		// Need to refresh directory displayed if changed in settings
+		downloadLocation.setText(Settings.getDCDownloadsDirectory(getActivity()));
+		super.onResume();
+	}
 }
 
 
