@@ -59,7 +59,7 @@ public class ConfirmDownloadFragment extends DialogFragment {
 	    TextView title = (TextView)dialogView.findViewById(R.id.title);
 	    title.setText(fileName);
 	    TextView user = (TextView)dialogView.findViewById(R.id.user);
-	    user.setText(nick);
+	    user.setText(nick + ":" + remotePath);
 	    
 	    return builder.create();
 	}
