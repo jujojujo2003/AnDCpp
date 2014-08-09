@@ -1,0 +1,3 @@
+[submodule "libjdcpp"]
+	path = libjdcpp
+	url = git@github.com:jujojujo2003/libjdcpp.git
